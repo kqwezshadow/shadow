@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <title>Cloud Web App</title>
 <style>
+    /* Основной стиль страницы */
     body {
-        font-family: Arial, sans-serif;
-        background-color: #fff8b0; /* светло-жёлтый фон */
+        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -14,55 +15,103 @@
         margin: 0;
     }
 
+    /* Контейнер формы */
     .form-container {
-        background-color: #ffffff;
-        padding: 20px 25px;
-        border-radius: 8px;
-        width: 320px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 40px 45px;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        width: 380px;
         text-align: center;
+        border: 1px solid rgba(255,255,255,0.2);
     }
 
     h2 {
-        margin-bottom: 15px;
-        color: #333333;
+        margin-bottom: 30px;
+        color: #2d3748;
+        font-weight: 600;
+        font-size: 28px;
+        letter-spacing: -0.5px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
-    input, textarea {
+    input {
         width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: #f7fafc;
+        color: #1a202c;
+        font-weight: 500;
+        box-sizing: border-box;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        background-color: #fff;
+    }
+
+    input::placeholder {
+        color: #a0aec0;
+        font-weight: 400;
+        font-style: italic;
     }
 
     button {
-        background-color: #f4a261;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 10px 15px;
-        border-radius: 4px;
+        padding: 14px 25px;
+        border-radius: 12px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        width: 100%;
+        text-transform: uppercase;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    button:active {
+        transform: translateY(0);
     }
 
     #status {
-        margin-top: 10px;
-        color: #f4a261;
-        font-weight: bold;
+        margin-top: 20px;
+        font-weight: 600;
+        color: #48bb78;
+        font-size: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #f0fff4;
+        display: inline-block;
+        width: 100%;
+        box-sizing: border-box;
     }
 </style>
 </head>
 <body>
 
 <div class="form-container">
-    <h2>Отправка запроса</h2>
+    <h2>📬 Отправка запроса</h2>
 
     <form id="requestForm">
         <input type="text" id="name" placeholder="Ваше имя" required>
         <input type="email" id="email" placeholder="Email" required>
-        <textarea id="message" placeholder="Сообщение" required></textarea>
-        <button type="submit">Отправить</button>
+        <button type="submit">Отправить →</button>
     </form>
 
     <p id="status"></p>
@@ -93,20 +142,19 @@ document.getElementById("requestForm").addEventListener("submit", async (e) => {
 
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
-    const message = document.getElementById("message").value;
 
     try {
         await addDoc(collection(db, "requests"), {
             name: name,
             email: email,
-            message: message,
             date: new Date()
         });
 
-        document.getElementById("status").innerText = "Данные успешно отправлены!";
+        document.getElementById("status").innerText = "✅ Данные успешно отправлены!";
         document.getElementById("requestForm").reset();
+
     } catch (error) {
-        document.getElementById("status").innerText = "Ошибка отправки: " + error;
+        document.getElementById("status").innerText = "❌ Ошибка отправки: " + error;
     }
 });
 </script>
