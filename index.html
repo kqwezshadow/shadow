@@ -3,19 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <title>Cloud Web App</title>
+<style>
+    /* Основной стиль страницы */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f4f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    /* Контейнер формы */
+    .form-container {
+        background: #ffffff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        width: 350px;
+        text-align: center;
+    }
+
+    h2 {
+        margin-bottom: 25px;
+        color: #333333;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: #4a90e2;
+        box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+    }
+
+    button {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #357ab8;
+    }
+
+    #status {
+        margin-top: 15px;
+        font-weight: bold;
+        color: #4a90e2;
+    }
+</style>
 </head>
 <body>
 
-<h2>Отправка запроса</h2>
+<div class="form-container">
+    <h2>Отправка запроса</h2>
 
-<form id="requestForm">
-    <input type="text" id="name" placeholder="Ваше имя" required><br><br>
-    <input type="email" id="email" placeholder="Email" required><br><br>
-    <textarea id="message" placeholder="Сообщение" required></textarea><br><br>
-    <button type="submit">Отправить</button>
-</form>
+    <form id="requestForm">
+        <input type="text" id="name" placeholder="Ваше имя" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <textarea id="message" placeholder="Сообщение" required></textarea>
+        <button type="submit">Отправить</button>
+    </form>
 
-<p id="status"></p>
+    <p id="status"></p>
+</div>
 
 <script type="module">
 
