@@ -1,163 +1,77 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Cloud Web App</title>
-<style>
-    /* Основной стиль страницы */
-    body {
-        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-    }
-
-    /* Контейнер формы */
-    .form-container {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        padding: 40px 45px;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        width: 380px;
-        text-align: center;
-        border: 1px solid rgba(255,255,255,0.2);
-    }
-
-    h2 {
-        margin-bottom: 30px;
-        color: #2d3748;
-        font-weight: 600;
-        font-size: 28px;
-        letter-spacing: -0.5px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
-
-    input {
-        width: 100%;
-        padding: 14px 18px;
-        margin-bottom: 18px;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        font-size: 15px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background-color: #f7fafc;
-        color: #1a202c;
-        font-weight: 500;
-        box-sizing: border-box;
-    }
-
-    input:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-        background-color: #fff;
-    }
-
-    input::placeholder {
-        color: #a0aec0;
-        font-weight: 400;
-        font-style: italic;
-    }
-
-    button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 14px 25px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 17px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        width: 100%;
-        text-transform: uppercase;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    button:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-
-    button:active {
-        transform: translateY(0);
-    }
-
-    #status {
-        margin-top: 20px;
-        font-weight: 600;
-        color: #48bb78;
-        font-size: 15px;
-        padding: 10px;
-        border-radius: 8px;
-        background-color: #f0fff4;
-        display: inline-block;
-        width: 100%;
-        box-sizing: border-box;
-    }
-</style>
+  <meta charset="UTF-8">
+  <title>Живая лента Firebase</title>
 </head>
 <body>
+  <h1>Лента сообщений</h1>
+  <div id="posts"></div>
 
-<div class="form-container">
-    <h2>📬 Отправка запроса</h2>
+  <script type="module">
+    // 1️⃣ Импорт нужных функций
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-analytics.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
 
-    <form id="requestForm">
-        <input type="text" id="name" placeholder="Ваше имя" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <button type="submit">Отправить →</button>
-    </form>
+    // 2️⃣ Конфигурация Firebase (твой проект)
+    const firebaseConfig = {
+      apiKey: "AIzaSyC1FadsdnN8ZnKkdgYKqfMIOgxyph5zM3A",
+      authDomain: "kqwez-token.firebaseapp.com",
+      projectId: "kqwez-token",
+      storageBucket: "kqwez-token.firebasestorage.app",
+      messagingSenderId: "508135236384",
+      appId: "1:508135236384:web:75514deba078c0dabfad45",
+      measurementId: "G-KS7JWV33JS"
+    };
 
-    <p id="status"></p>
-</div>
+    // 3️⃣ Инициализация Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // 4️⃣ Коллекция сообщений
+    const postsCol = collection(db, "requests");
+    const q = query(postsCol, orderBy("timestamp", "desc"));
 
-// Конфигурация Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyC1FadsdnN8ZnKkdgYKqfMIOgxyph5zM3A",
-  authDomain: "kqwez-token.firebaseapp.com",
-  projectId: "kqwez-token",
-  storageBucket: "kqwez-token.firebasestorage.app",
-  messagingSenderId: "508135236384",
-  appId: "1:508135236384:web:75514deba078c0dabfad45",
-  measurementId: "G-KS7JWV33JS"
-};
+    const container = document.getElementById("posts");
 
-// Инициализация Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    // 5️⃣ Реактивное отображение сообщений
+    onSnapshot(q, (snapshot) => {
+      container.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const postEl = document.createElement("div");
+        postEl.style.border = "1px solid #ccc";
+        postEl.style.padding = "10px";
+        postEl.style.marginBottom = "10px";
 
-// Обработка формы
-document.getElementById("requestForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+        postEl.innerHTML = `
+          <p><strong>${data.name}</strong> (${data.email})</p>
+          <p>${data.text || ""}</p>
+          <button onclick="like('${docSnap.id}')">❤ ${data.likes || 0}</button>
+        `;
 
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
+        container.appendChild(postEl);
+      });
+    });
 
-    try {
-        await addDoc(collection(db, "requests"), {
-            name: name,
-            email: email,
-            date: new Date()
-        });
+    // 6️⃣ Функция лайка (атомарно)
+    window.like = async (id) => {
+      const postRef = doc(db, "requests", id);
+      await updateDoc(postRef, { likes: increment(1) });
+    };
 
-        document.getElementById("status").innerText = "✅ Данные успешно отправлены!";
-        document.getElementById("requestForm").reset();
-
-    } catch (error) {
-        document.getElementById("status").innerText = "❌ Ошибка отправки: " + error;
-    }
-});
-</script>
-
+    // 7️⃣ Функция добавления нового сообщения
+    window.addPost = async (name, email, text) => {
+      await addDoc(postsCol, {
+        name,
+        email,
+        text,
+        likes: 0,
+        timestamp: serverTimestamp()
+      });
+    };
+  </script>
 </body>
 </html>
