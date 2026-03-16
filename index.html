@@ -2,33 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Firebase Реактивное приложение</title>
+    <title>BaaS</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { background: #4361ee; color: white; border: none; padding: 12px; border-radius: 5px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; margin: 5px 0; }
-        button:hover { background: #3046bf; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .post { list-style: none; padding: 15px; margin: 10px 0; background: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .post:hover { background: #f0f0f0; }
-        .time { font-size: 0.8em; color: #666; }
-        .like-btn { background: #ff6b6b; width: auto; padding: 5px 15px; margin: 5px 0; }
-        .delete-attempt { background: #6c757d; width: auto; padding: 5px 15px; }
-        #feed { width: 100%; max-width: 500px; margin-top: 20px; }
+    body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+    button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
+    button#mainBtn:hover { background: #0056b3; }
+    button#mainBtn:disabled { background: #ccc; cursor: not-allowed; }
+    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; box-sizing: border-box; }
+    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
+    .like-btn:hover { background: #e2e6ea; }
+    .time { font-size: 11px; color: #999; float: right; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h3>Административная панель</h3>
-        <input type="text" id="name" placeholder="Введите имя">
-        <input type="email" id="email" placeholder="Введите email">
-        <textarea id="message" placeholder="Введите сообщение" rows="3"></textarea>
-        <button id="mainBtn">Отправить сообщение</button>
+        <h3>Панель управления данными</h3>
+        <input type="text" id="name" placeholder="Имя профиля">
+        <input type="email" id="email" placeholder="Рабочий Email">
+        <button id="mainBtn">Опубликовать в облако</button>
     </div>
-    
-    <h3>Лента сообщений (обновляется в реальном времени):</h3>
-    <div id="feed"></div>
+
+    <div id="feed" style="width: 100%; max-width: 500px;"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -36,8 +32,9 @@
             getFirestore, collection, addDoc, query, orderBy, onSnapshot,
             serverTimestamp, updateDoc, doc, increment
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
 
-        // КОНФИГУРАЦИЯ ИЗ ВАШЕГО ПОСЛЕДНЕГО ФАЙЛА
+        // КОНФИГУРАЦИЯ (ваши ключи)
         const firebaseConfig = {
             apiKey: "AIzaSyC1FadsdnN8ZnKkdgYKqfMIOgxyph5zM3A",
             authDomain: "kqwez-token.firebaseapp.com",
@@ -48,31 +45,30 @@
             measurementId: "G-KS7JWV33JS"
         };
 
-        // Инициализация Firebase
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Функция для обработки лайков
+        // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
         window.processLike = async (id) => {
             const docRef = doc(db, "requests", id);
             try {
                 await updateDoc(docRef, { likes: increment(1) });
                 console.log("Лайк добавлен");
             } catch (error) {
-                console.error("Ошибка при добавлении лайка:", error.message);
-                alert("Ошибка безопасности: " + error.message);
+                console.error("Ошибка:", error);
+                alert("Ошибка: " + error.message);
             }
         };
 
-        // Отправка нового сообщения
+        // МЕТОД: ЗАПИСЬ С ВАЛИДАЦИЕЙ
         document.getElementById('mainBtn').onclick = async () => {
             const btn = document.getElementById('mainBtn');
             const nameInput = document.getElementById('name');
             const emailInput = document.getElementById('email');
-            const messageInput = document.getElementById('message');
             
-            // Валидация
-            if (!nameInput.value || !emailInput.value || !messageInput.value) {
+            if (!nameInput.value || !emailInput.value) {
                 alert("Пожалуйста, заполните все поля");
                 return;
             }
@@ -83,26 +79,24 @@
                 await addDoc(collection(db, "requests"), {
                     name: nameInput.value,
                     email: emailInput.value,
-                    message: messageInput.value,
                     likes: 0,
                     timestamp: serverTimestamp()
                 });
                 
-                // Очистка полей после успешной отправки
-                nameInput.value = "";
+                // Очистка поля email
                 emailInput.value = "";
-                messageInput.value = "";
+                nameInput.value = ""; // Добавил очистку имени
                 
-                console.log("Сообщение успешно добавлено");
+                console.log("Данные успешно добавлены");
             } catch (e) { 
-                console.error("Ошибка:", e);
-                alert("Ошибка безопасности! Данные отклонены сервером: " + e.message); 
-            } finally {
-                btn.disabled = false;
+                console.error("Ошибка безопасности:", e);
+                alert("Ошибка безопасности: Данные отклонены сервером."); 
             }
+            
+            btn.disabled = false;
         };
 
-        // REAL-TIME ПОДПИСКА С СОРТИРОВКОЙ
+        // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
         const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
         
         onSnapshot(q, (snapshot) => {
@@ -110,7 +104,7 @@
             feed.innerHTML = "";
             
             if (snapshot.empty) {
-                feed.innerHTML = "<div class='post'>Нет сообщений. Напишите первое!</div>";
+                feed.innerHTML = "<div class='post'>Нет сообщений</div>";
                 return;
             }
             
@@ -118,51 +112,29 @@
                 const data = doc.data();
                 const docId = doc.id;
                 
-                // Форматирование времени
-                let timeString = "только что";
-                if (data.timestamp) {
-                    const date = data.timestamp.toDate();
-                    timeString = date.toLocaleString();
+                // Безопасное отображение времени
+                let timeString = '...';
+                try {
+                    if (data.timestamp) {
+                        timeString = data.timestamp.toDate().toLocaleTimeString();
+                    }
+                } catch (e) {
+                    timeString = '...';
                 }
                 
-                // Создание элемента поста
-                const postDiv = document.createElement('div');
-                postDiv.className = 'post';
-                postDiv.innerHTML = `
-                    <div>
+                feed.innerHTML += `
+                    <div class="post">
                         <span class="time">${timeString}</span>
-                        <h4 style="margin: 5px 0;">${data.name || 'Аноним'}</h4>
-                        <p style="margin: 5px 0;"><b>Email:</b> ${data.email || 'Нет'}</p>
-                        <p style="margin: 5px 0;">${data.message || ''}</p>
-                        <button class="like-btn" onclick="processLike('${docId}')">
-                            ❤️ Лайки: ${data.likes || 0}
-                        </button>
-                        <button class="delete-attempt" onclick="attemptHack('${docId}')">
-                            ⚠️ Попытка взлома (изменить текст)
-                        </button>
+                        <b>${data.name || 'Аноним'}</b>
+                        <p style="margin: 5px 0;">${data.email || ''}</p>
+                        <button class="like-btn" onclick="processLike('${docId}')"> ❤️ ${data.likes || 0}</button>
                     </div>
                 `;
-                feed.appendChild(postDiv);
             });
         }, (error) => {
             console.error("Ошибка подписки:", error);
-            document.getElementById('feed').innerHTML = "<div class='post'>Ошибка загрузки данных</div>";
+            document.getElementById('feed').innerHTML = "<div class='post'>Ошибка загрузки</div>";
         });
-
-        // Функция для демонстрации безопасности (попытка изменить текст)
-        window.attemptHack = async (id) => {
-            const docRef = doc(db, "requests", id);
-            try {
-                // Пытаемся изменить текст (должно быть запрещено правилами)
-                await updateDoc(docRef, { 
-                    message: "ВЗЛОМАННЫЙ ТЕКСТ",
-                    name: "ХАКЕР" 
-                });
-                alert("Упс... Это сработало? Правила безопасности не настроены!");
-            } catch (error) {
-                alert("✅ Защита сработала! Ошибка: " + error.message);
-            }
-        };
     </script>
 </body>
 </html>
