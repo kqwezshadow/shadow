@@ -4,27 +4,214 @@
     <meta charset="UTF-8">
     <title>BaaS</title>
     <style>
-    body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    button#mainBtn { background: #007bff; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s ease-in-out; }
-    button#mainBtn:hover { background: #0056b3; }
-    button#mainBtn:disabled { background: #ccc; cursor: not-allowed; }
-    .post { background: #fff; border: 1px solid #eaeaea; padding: 15px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; box-sizing: border-box; }
-    .like-btn { cursor: pointer; border: none; background: #f8f9fa; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
-    .like-btn:hover { background: #e2e6ea; }
-    .time { font-size: 11px; color: #999; float: right; }
+        /* СОВРЕМЕННЫЙ СТИЛЬ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        
+        h3 {
+            color: #2d3748;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h3:after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input::placeholder {
+            color: #a0aec0;
+        }
+        
+        button#mainBtn {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button#mainBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        button#mainBtn:disabled {
+            background: #cbd5e0;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        #feed {
+            width: 100%;
+            max-width: 550px;
+        }
+        
+        .post {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .post:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .time {
+            font-size: 12px;
+            color: #718096;
+            background: #f7fafc;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .post b {
+            font-size: 18px;
+            color: #2d3748;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .post p {
+            color: #4a5568;
+            font-size: 15px;
+            margin: 8px 0 15px;
+            line-height: 1.5;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .like-btn {
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(90deg, #ed64a6, #d53f8c);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(213, 63, 140, 0.3);
+        }
+        
+        .like-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(213, 63, 140, 0.4);
+        }
+        
+        .like-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h3 {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h3>Панель управления данными</h3>
+        <h3>🚀 Панель управления данными</h3>
         <input type="text" id="name" placeholder="Имя профиля">
         <input type="email" id="email" placeholder="Рабочий Email">
-        <button id="mainBtn">Опубликовать в облако</button>
+        <button id="mainBtn">📤 Опубликовать в облако</button>
     </div>
 
-    <div id="feed" style="width: 100%; max-width: 500px;"></div>
+    <div id="feed"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -83,9 +270,9 @@
                     timestamp: serverTimestamp()
                 });
                 
-                // Очистка поля email
+                // Очистка полей
                 emailInput.value = "";
-                nameInput.value = ""; // Добавил очистку имени
+                nameInput.value = "";
                 
                 console.log("Данные успешно добавлены");
             } catch (e) { 
@@ -104,7 +291,7 @@
             feed.innerHTML = "";
             
             if (snapshot.empty) {
-                feed.innerHTML = "<div class='post'>Нет сообщений</div>";
+                feed.innerHTML = "<div class='post' style='text-align: center; color: #718096;'>📭 Нет сообщений</div>";
                 return;
             }
             
@@ -113,10 +300,16 @@
                 const docId = doc.id;
                 
                 // Безопасное отображение времени
-                let timeString = '...';
+                let timeString = 'только что';
                 try {
                     if (data.timestamp) {
-                        timeString = data.timestamp.toDate().toLocaleTimeString();
+                        const date = data.timestamp.toDate();
+                        timeString = date.toLocaleString('ru-RU', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit'
+                        });
                     }
                 } catch (e) {
                     timeString = '...';
@@ -124,16 +317,18 @@
                 
                 feed.innerHTML += `
                     <div class="post">
-                        <span class="time">${timeString}</span>
-                        <b>${data.name || 'Аноним'}</b>
-                        <p style="margin: 5px 0;">${data.email || ''}</p>
-                        <button class="like-btn" onclick="processLike('${docId}')"> ❤️ ${data.likes || 0}</button>
+                        <span class="time">🕐 ${timeString}</span>
+                        <b>👤 ${data.name || 'Аноним'}</b>
+                        <p>📧 ${data.email || 'Нет email'}</p>
+                        <button class="like-btn" onclick="processLike('${docId}')">
+                            ❤️ ${data.likes || 0} лайков
+                        </button>
                     </div>
                 `;
             });
         }, (error) => {
             console.error("Ошибка подписки:", error);
-            document.getElementById('feed').innerHTML = "<div class='post'>Ошибка загрузки</div>";
+            document.getElementById('feed').innerHTML = "<div class='post' style='text-align: center; color: #e53e3e;'>❌ Ошибка загрузки</div>";
         });
     </script>
 </body>
