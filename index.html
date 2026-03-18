@@ -101,12 +101,29 @@
             cursor: not-allowed;
         }
         
-        button.secondary {
+        .search-container {
+            width: 100%;
+            max-width: 550px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        #searchInput {
+            flex: 3;
+            margin: 0;
+        }
+        
+        #searchBtn {
+            flex: 1;
+            padding: 15px;
             background: linear-gradient(90deg, #48bb78, #38a169);
         }
         
-        button.danger {
-            background: linear-gradient(90deg, #f56565, #e53e3e);
+        #clearSearchBtn {
+            flex: 1;
+            padding: 15px;
+            background: linear-gradient(90deg, #a0aec0, #718096);
         }
         
         #feed {
@@ -169,56 +186,59 @@
             border-left: 4px solid #667eea;
         }
         
-        .post-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .action-btn {
-            flex: 1;
-            padding: 8px;
+        .like-btn {
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(90deg, #ed64a6, #d53f8c);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
             font-size: 14px;
-            text-transform: none;
-        }
-        
-        .edit-btn {
-            background: linear-gradient(90deg, #4299e1, #3182ce);
-        }
-        
-        .delete-btn {
-            background: linear-gradient(90deg, #f56565, #e53e3e);
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
             align-items: center;
-            z-index: 1000;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(213, 63, 140, 0.3);
+            margin-right: 10px;
         }
         
-        .modal.active {
-            display: flex;
+        .like-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(213, 63, 140, 0.4);
         }
         
-        .modal-content {
-            background: white;
-            padding: 30px;
+        .like-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .like-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .like-count {
+            font-size: 16px;
+            font-weight: bold;
+            color: #d53f8c;
+            background: rgba(213, 63, 140, 0.1);
+            padding: 5px 10px;
             border-radius: 20px;
-            max-width: 400px;
-            width: 90%;
+            display: inline-block;
         }
         
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
+        .search-highlight {
+            background-color: #fefcbf;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -228,34 +248,22 @@
         <input type="text" id="name" placeholder="Имя профиля">
         <input type="email" id="email" placeholder="Рабочий Email">
         <textarea id="message" placeholder="Текст сообщения" rows="3"></textarea>
-        <div class="button-group">
-            <button id="mainBtn">📤 Опубликовать</button>
-            <button id="statsBtn" class="secondary">📊 Статистика</button>
-        </div>
+        <button id="mainBtn">📤 Опубликовать</button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="🔍 Поиск по имени, email или тексту...">
+        <button id="searchBtn">Найти</button>
+        <button id="clearSearchBtn">Сброс</button>
     </div>
 
     <div id="feed"></div>
-
-    <!-- Модальное окно для редактирования -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 20px;">✏️ Редактировать сообщение</h3>
-            <input type="text" id="editName" placeholder="Имя">
-            <input type="email" id="editEmail" placeholder="Email">
-            <textarea id="editMessage" placeholder="Текст сообщения" rows="3"></textarea>
-            <input type="hidden" id="editId">
-            <div class="modal-buttons">
-                <button id="saveEditBtn" class="secondary">💾 Сохранить</button>
-                <button id="cancelEditBtn" class="danger">❌ Отмена</button>
-            </div>
-        </div>
-    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import {
             getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-            serverTimestamp, updateDoc, doc, increment, deleteDoc, getDocs
+            serverTimestamp, updateDoc, doc, increment, getDocs
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
 
@@ -274,178 +282,146 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
+        // Переменная для хранения всех сообщений
+        let allMessages = [];
+        let currentSearchTerm = '';
+
         // ===========================================
-        // ФУНКЦИЯ 1: ПОЛУЧЕНИЕ СТАТИСТИКИ
+        // ФУНКЦИЯ 1: БЕСКОНЕЧНЫЕ ЛАЙКИ
         // ===========================================
-        window.getCollectionStats = async () => {
-            const statsBtn = document.getElementById('statsBtn');
-            const originalText = statsBtn.innerHTML;
+        window.processLike = async (documentId, event) => {
+            const docRef = doc(db, "requests", documentId);
+            const button = event?.target;
+            const originalText = button?.innerHTML;
             
-            statsBtn.disabled = true;
-            statsBtn.innerHTML = '⏳ Загрузка...';
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '⏳';
+            }
             
             try {
-                const querySnapshot = await getDocs(collection(db, "requests"));
-                
-                let totalLikes = 0;
-                let totalMessages = querySnapshot.size;
-                let uniqueUsers = new Set();
-                let totalWords = 0;
-                
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    totalLikes += data.likes || 0;
-                    if (data.email) {
-                        uniqueUsers.add(data.email);
-                    }
-                    if (data.message) {
-                        totalWords += data.message.split(' ').length;
-                    }
+                // Атомарная операция increment - можно нажимать бесконечно
+                await updateDoc(docRef, { 
+                    likes: increment(1) 
                 });
                 
-                const stats = {
-                    totalMessages,
-                    totalLikes,
-                    uniqueUsers: uniqueUsers.size,
-                    averageLikes: totalMessages ? (totalLikes / totalMessages).toFixed(1) : 0,
-                    averageWords: totalMessages ? Math.round(totalWords / totalMessages) : 0
-                };
+                console.log(`Лайк для документа ${documentId} добавлен. Всего лайков: +1`);
                 
-                // Показываем статистику
-                const statsMessage = `
-                    📊 СТАТИСТИКА КОЛЛЕКЦИИ:
-                    
-                    • Всего сообщений: ${stats.totalMessages}
-                    • Всего лайков: ${stats.totalLikes}
-                    • Уникальных пользователей: ${stats.uniqueUsers}
-                    • Среднее лайков: ${stats.averageLikes}
-                    • Средняя длина сообщения: ${stats.averageWords} слов
-                `;
+                // Визуальная обратная связь
+                if (button) {
+                    button.innerHTML = '❤️ +1';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 200);
+                }
                 
-                alert(statsMessage);
-                
-                // Логируем в консоль для разработчика
-                console.log('📊 Статистика:', stats);
-                
-                return stats;
+                // Счетчик для демонстрации
+                const likeCount = button?.closest('.post')?.querySelector('.like-count');
+                if (likeCount) {
+                    const currentLikes = parseInt(likeCount.textContent) || 0;
+                    likeCount.textContent = currentLikes + 1;
+                }
                 
             } catch (error) {
-                console.error('Ошибка при получении статистики:', error);
+                console.error("Ошибка при добавлении лайка:", error);
+                
+                if (button) {
+                    button.innerHTML = '❌';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 1000);
+                }
                 
                 let errorMessage = 'Ошибка: ' + error.message;
                 if (error.code === 'permission-denied') {
-                    errorMessage = '🔒 Нет прав для чтения статистики';
+                    errorMessage = '🔒 Правила безопасности запретили это действие';
                 }
                 
                 alert(errorMessage);
                 
             } finally {
-                statsBtn.disabled = false;
-                statsBtn.innerHTML = originalText;
+                if (button) {
+                    button.disabled = false;
+                }
             }
         };
 
         // ===========================================
-        // ФУНКЦИЯ 2: РЕДАКТИРОВАНИЕ СООБЩЕНИЯ
+        // ФУНКЦИЯ 2: ПОИСК СООБЩЕНИЙ
         // ===========================================
-        window.editMessage = (docId, currentName, currentEmail, currentMessage) => {
-            // Заполняем модальное окно
-            document.getElementById('editId').value = docId;
-            document.getElementById('editName').value = currentName || '';
-            document.getElementById('editEmail').value = currentEmail || '';
-            document.getElementById('editMessage').value = currentMessage || '';
+        window.searchMessages = () => {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            currentSearchTerm = searchTerm;
             
-            // Показываем модальное окно
-            document.getElementById('editModal').classList.add('active');
-        };
-
-        // Функция сохранения изменений
-        window.saveEditedMessage = async () => {
-            const docId = document.getElementById('editId').value;
-            const newName = document.getElementById('editName').value.trim();
-            const newEmail = document.getElementById('editEmail').value.trim();
-            const newMessage = document.getElementById('editMessage').value.trim();
-            
-            if (!newName || !newEmail || !newMessage) {
-                alert('Все поля должны быть заполнены');
+            if (!searchTerm) {
+                // Если поиск пустой, показываем все сообщения
+                displayMessages(allMessages);
                 return;
             }
             
-            const saveBtn = document.getElementById('saveEditBtn');
-            const originalText = saveBtn.innerHTML;
+            // Фильтруем сообщения по поисковому запросу
+            const filteredMessages = allMessages.filter(msg => {
+                const data = msg.data;
+                return (
+                    (data.name && data.name.toLowerCase().includes(searchTerm)) ||
+                    (data.email && data.email.toLowerCase().includes(searchTerm)) ||
+                    (data.message && data.message.toLowerCase().includes(searchTerm))
+                );
+            });
             
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '⏳ Сохранение...';
+            displayMessages(filteredMessages, searchTerm);
             
-            try {
-                const docRef = doc(db, "requests", docId);
-                
-                await updateDoc(docRef, {
-                    name: newName,
-                    email: newEmail,
-                    message: newMessage,
-                    editedAt: serverTimestamp()
-                });
-                
-                // Закрываем модальное окно
-                document.getElementById('editModal').classList.remove('active');
-                
-                // Уведомление об успехе
-                const notification = document.createElement('div');
-                notification.textContent = '✅ Сообщение обновлено';
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    padding: 15px 25px;
-                    background: #48bb78;
-                    color: white;
-                    border-radius: 8px;
-                    font-weight: 500;
-                    z-index: 1001;
-                    animation: slideIn 0.3s ease;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                `;
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Ошибка при редактировании:', error);
-                
-                let errorMessage = 'Ошибка: ' + error.message;
-                if (error.code === 'permission-denied') {
-                    errorMessage = '🔒 Изменение запрещено правилами безопасности';
-                }
-                
-                alert(errorMessage);
-                
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = originalText;
-            }
+            // Показываем результат поиска
+            const resultCount = filteredMessages.length;
+            const notification = document.createElement('div');
+            notification.textContent = `🔍 Найдено сообщений: ${resultCount}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: #4299e1;
+                color: white;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
         };
 
         // ===========================================
-        // REAL-TIME ПОДПИСКА
+        // ФУНКЦИЯ: СБРОС ПОИСКА
         // ===========================================
-        const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
+        window.clearSearch = () => {
+            document.getElementById('searchInput').value = '';
+            currentSearchTerm = '';
+            displayMessages(allMessages);
+        };
+
+        // ===========================================
+        // ФУНКЦИЯ: ОТОБРАЖЕНИЕ СООБЩЕНИЙ
+        // ===========================================
+        function displayMessages(messages, highlightTerm = '') {
             const feed = document.getElementById('feed');
+            
+            if (messages.length === 0) {
+                if (highlightTerm) {
+                    feed.innerHTML = `<div class="no-results">🔍 Ничего не найдено по запросу "${highlightTerm}"</div>`;
+                } else {
+                    feed.innerHTML = "<div class='post' style='text-align: center; color: #718096;'>📭 Нет сообщений</div>";
+                }
+                return;
+            }
+            
             feed.innerHTML = "";
             
-            if (snapshot.empty) {
-                feed.innerHTML = "<div class='post' style='text-align: center; color: #718096;'>📭 Нет сообщений</div>";
-                return;
-            }
-            
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const docId = doc.id;
-                
+            messages.forEach(({ id, data }) => {
                 // Безопасное отображение времени
                 let timeString = 'только что';
                 try {
@@ -462,33 +438,76 @@
                     timeString = '...';
                 }
                 
-                // Отметка о редактировании
-                const editedMark = data.editedAt ? ' (ред.)' : '';
+                // Подсветка поискового запроса
+                let nameDisplay = data.name || 'Аноним';
+                let emailDisplay = data.email || 'Нет email';
+                let messageDisplay = data.message || 'Нет текста';
+                
+                if (highlightTerm) {
+                    const regex = new RegExp(`(${highlightTerm})`, 'gi');
+                    nameDisplay = nameDisplay.replace(regex, '<span class="search-highlight">$1</span>');
+                    emailDisplay = emailDisplay.replace(regex, '<span class="search-highlight">$1</span>');
+                    messageDisplay = messageDisplay.replace(regex, '<span class="search-highlight">$1</span>');
+                }
                 
                 feed.innerHTML += `
-                    <div class="post" id="post-${docId}">
-                        <span class="time">🕐 ${timeString}${editedMark}</span>
-                        <b>👤 ${data.name || 'Аноним'}</b>
-                        <p>📧 ${data.email || 'Нет email'}</p>
-                        <p>💬 ${data.message || 'Нет текста'}</p>
-                        <div class="post-actions">
-                            <button class="action-btn edit-btn" onclick="editMessage('${docId}', '${data.name || ''}', '${data.email || ''}', '${data.message || ''}')">
-                                ✏️ Редактировать
+                    <div class="post">
+                        <span class="time">🕐 ${timeString}</span>
+                        <b>👤 ${nameDisplay}</b>
+                        <p>📧 ${emailDisplay}</p>
+                        <p>💬 ${messageDisplay}</p>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <button class="like-btn" onclick="processLike('${id}', event)">
+                                ❤️ Лайк
                             </button>
+                            <span class="like-count">${data.likes || 0}</span>
                         </div>
+                        <small style="display: block; margin-top: 10px; color: #a0aec0; text-align: right;">
+                            👆 Можно нажимать лайк бесконечно!
+                        </small>
                     </div>
                 `;
             });
+        }
+
+        // ===========================================
+        // REAL-TIME ПОДПИСКА
+        // ===========================================
+        const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            // Сохраняем все сообщения
+            allMessages = [];
+            
+            snapshot.forEach((doc) => {
+                allMessages.push({
+                    id: doc.id,
+                    data: doc.data()
+                });
+            });
+            
+            // Отображаем с учетом текущего поиска
+            if (currentSearchTerm) {
+                const filteredMessages = allMessages.filter(msg => {
+                    const data = msg.data;
+                    return (
+                        (data.name && data.name.toLowerCase().includes(currentSearchTerm)) ||
+                        (data.email && data.email.toLowerCase().includes(currentSearchTerm)) ||
+                        (data.message && data.message.toLowerCase().includes(currentSearchTerm))
+                    );
+                });
+                displayMessages(filteredMessages, currentSearchTerm);
+            } else {
+                displayMessages(allMessages);
+            }
         }, (error) => {
             console.error("Ошибка подписки:", error);
             document.getElementById('feed').innerHTML = "<div class='post' style='text-align: center; color: #e53e3e;'>❌ Ошибка загрузки</div>";
         });
 
         // ===========================================
-        // ОБРАБОТЧИКИ СОБЫТИЙ
+        // ПУБЛИКАЦИЯ СООБЩЕНИЯ
         // ===========================================
-        
-        // Публикация сообщения
         document.getElementById('mainBtn').onclick = async () => {
             const nameInput = document.getElementById('name');
             const emailInput = document.getElementById('email');
@@ -525,23 +544,16 @@
             }
         };
 
-        // Статистика
-        document.getElementById('statsBtn').onclick = window.getCollectionStats;
-
-        // Модальное окно
-        document.getElementById('saveEditBtn').onclick = window.saveEditedMessage;
+        // Обработчики поиска
+        document.getElementById('searchBtn').onclick = window.searchMessages;
+        document.getElementById('clearSearchBtn').onclick = window.clearSearch;
         
-        document.getElementById('cancelEditBtn').onclick = () => {
-            document.getElementById('editModal').classList.remove('active');
-        };
-
-        // Закрытие по клику вне модального окна
-        window.onclick = (event) => {
-            const modal = document.getElementById('editModal');
-            if (event.target === modal) {
-                modal.classList.remove('active');
+        // Поиск по нажатию Enter
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                window.searchMessages();
             }
-        };
+        });
     </script>
 </body>
 </html>
