@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>BaaS</title>
     <style>
+        /* СОВРЕМЕННЫЙ СТИЛЬ */
         * {
             margin: 0;
             padding: 0;
@@ -51,7 +52,7 @@
             border-radius: 2px;
         }
         
-        input, textarea {
+        input {
             width: 100%;
             padding: 15px 20px;
             margin: 10px 0;
@@ -62,68 +63,42 @@
             background: white;
         }
         
-        input:focus, textarea:focus {
+        input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+        input::placeholder {
+            color: #a0aec0;
         }
         
-        button {
-            flex: 1;
+        button#mainBtn {
             background: linear-gradient(90deg, #667eea, #764ba2);
             color: white;
             border: none;
             padding: 16px;
             border-radius: 12px;
+            width: 100%;
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-top: 15px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        button:hover {
+        button#mainBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
         
-        button:disabled {
+        button#mainBtn:disabled {
             background: #cbd5e0;
             transform: none;
             box-shadow: none;
             cursor: not-allowed;
-        }
-        
-        .search-container {
-            width: 100%;
-            max-width: 550px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        #searchInput {
-            flex: 3;
-            margin: 0;
-        }
-        
-        #searchBtn {
-            flex: 1;
-            padding: 15px;
-            background: linear-gradient(90deg, #48bb78, #38a169);
-        }
-        
-        #clearSearchBtn {
-            flex: 1;
-            padding: 15px;
-            background: linear-gradient(90deg, #a0aec0, #718096);
         }
         
         #feed {
@@ -139,6 +114,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.5);
             transition: all 0.3s ease;
+            position: relative;
             animation: slideIn 0.3s ease;
         }
         
@@ -200,7 +176,6 @@
             align-items: center;
             gap: 8px;
             box-shadow: 0 5px 15px rgba(213, 63, 140, 0.3);
-            margin-right: 10px;
         }
         
         .like-btn:hover {
@@ -212,33 +187,19 @@
             transform: scale(0.95);
         }
         
-        .like-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .like-count {
-            font-size: 16px;
-            font-weight: bold;
-            color: #d53f8c;
-            background: rgba(213, 63, 140, 0.1);
-            padding: 5px 10px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        .search-highlight {
-            background-color: #fefcbf;
-            padding: 2px;
-            border-radius: 4px;
-        }
-        
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 18px;
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h3 {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -247,14 +208,7 @@
         <h3>🚀 Панель управления данными</h3>
         <input type="text" id="name" placeholder="Имя профиля">
         <input type="email" id="email" placeholder="Рабочий Email">
-        <textarea id="message" placeholder="Текст сообщения" rows="3"></textarea>
-        <button id="mainBtn">📤 Опубликовать</button>
-    </div>
-
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="🔍 Поиск по имени, email или тексту...">
-        <button id="searchBtn">Найти</button>
-        <button id="clearSearchBtn">Сброс</button>
+        <button id="mainBtn">📤 Опубликовать в облако</button>
     </div>
 
     <div id="feed"></div>
@@ -263,11 +217,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import {
             getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-            serverTimestamp, updateDoc, doc, increment, getDocs
+            serverTimestamp, updateDoc, doc, increment
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
 
-        // КОНФИГУРАЦИЯ
+        // КОНФИГУРАЦИЯ (ваши ключи)
         const firebaseConfig = {
             apiKey: "AIzaSyC1FadsdnN8ZnKkdgYKqfMIOgxyph5zM3A",
             authDomain: "kqwez-token.firebaseapp.com",
@@ -278,150 +232,73 @@
             measurementId: "G-KS7JWV33JS"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Переменная для хранения всех сообщений
-        let allMessages = [];
-        let currentSearchTerm = '';
-
-        // ===========================================
-        // ФУНКЦИЯ 1: БЕСКОНЕЧНЫЕ ЛАЙКИ
-        // ===========================================
-        window.processLike = async (documentId, event) => {
-            const docRef = doc(db, "requests", documentId);
-            const button = event?.target;
-            const originalText = button?.innerHTML;
-            
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '⏳';
+        // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
+        window.processLike = async (id) => {
+            const docRef = doc(db, "requests", id);
+            try {
+                await updateDoc(docRef, { likes: increment(1) });
+                console.log("Лайк добавлен");
+            } catch (error) {
+                console.error("Ошибка:", error);
+                alert("Ошибка: " + error.message);
             }
+        };
+
+        // МЕТОД: ЗАПИСЬ С ВАЛИДАЦИЕЙ
+        document.getElementById('mainBtn').onclick = async () => {
+            const btn = document.getElementById('mainBtn');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            
+            if (!nameInput.value || !emailInput.value) {
+                alert("Пожалуйста, заполните все поля");
+                return;
+            }
+            
+            btn.disabled = true;
             
             try {
-                // Атомарная операция increment - можно нажимать бесконечно
-                await updateDoc(docRef, { 
-                    likes: increment(1) 
+                await addDoc(collection(db, "requests"), {
+                    name: nameInput.value,
+                    email: emailInput.value,
+                    likes: 0,
+                    timestamp: serverTimestamp()
                 });
                 
-                console.log(`Лайк для документа ${documentId} добавлен. Всего лайков: +1`);
+                // Очистка полей
+                emailInput.value = "";
+                nameInput.value = "";
                 
-                // Визуальная обратная связь
-                if (button) {
-                    button.innerHTML = '❤️ +1';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                    }, 200);
-                }
-                
-                // Счетчик для демонстрации
-                const likeCount = button?.closest('.post')?.querySelector('.like-count');
-                if (likeCount) {
-                    const currentLikes = parseInt(likeCount.textContent) || 0;
-                    likeCount.textContent = currentLikes + 1;
-                }
-                
-            } catch (error) {
-                console.error("Ошибка при добавлении лайка:", error);
-                
-                if (button) {
-                    button.innerHTML = '❌';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                    }, 1000);
-                }
-                
-                let errorMessage = 'Ошибка: ' + error.message;
-                if (error.code === 'permission-denied') {
-                    errorMessage = '🔒 Правила безопасности запретили это действие';
-                }
-                
-                alert(errorMessage);
-                
-            } finally {
-                if (button) {
-                    button.disabled = false;
-                }
-            }
-        };
-
-        // ===========================================
-        // ФУНКЦИЯ 2: ПОИСК СООБЩЕНИЙ
-        // ===========================================
-        window.searchMessages = () => {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-            currentSearchTerm = searchTerm;
-            
-            if (!searchTerm) {
-                // Если поиск пустой, показываем все сообщения
-                displayMessages(allMessages);
-                return;
+                console.log("Данные успешно добавлены");
+            } catch (e) { 
+                console.error("Ошибка безопасности:", e);
+                alert("Ошибка безопасности: Данные отклонены сервером."); 
             }
             
-            // Фильтруем сообщения по поисковому запросу
-            const filteredMessages = allMessages.filter(msg => {
-                const data = msg.data;
-                return (
-                    (data.name && data.name.toLowerCase().includes(searchTerm)) ||
-                    (data.email && data.email.toLowerCase().includes(searchTerm)) ||
-                    (data.message && data.message.toLowerCase().includes(searchTerm))
-                );
-            });
-            
-            displayMessages(filteredMessages, searchTerm);
-            
-            // Показываем результат поиска
-            const resultCount = filteredMessages.length;
-            const notification = document.createElement('div');
-            notification.textContent = `🔍 Найдено сообщений: ${resultCount}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                background: #4299e1;
-                color: white;
-                border-radius: 8px;
-                font-weight: 500;
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 2000);
+            btn.disabled = false;
         };
 
-        // ===========================================
-        // ФУНКЦИЯ: СБРОС ПОИСКА
-        // ===========================================
-        window.clearSearch = () => {
-            document.getElementById('searchInput').value = '';
-            currentSearchTerm = '';
-            displayMessages(allMessages);
-        };
-
-        // ===========================================
-        // ФУНКЦИЯ: ОТОБРАЖЕНИЕ СООБЩЕНИЙ
-        // ===========================================
-        function displayMessages(messages, highlightTerm = '') {
+        // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
+        const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
             const feed = document.getElementById('feed');
-            
-            if (messages.length === 0) {
-                if (highlightTerm) {
-                    feed.innerHTML = `<div class="no-results">🔍 Ничего не найдено по запросу "${highlightTerm}"</div>`;
-                } else {
-                    feed.innerHTML = "<div class='post' style='text-align: center; color: #718096;'>📭 Нет сообщений</div>";
-                }
-                return;
-            }
-            
             feed.innerHTML = "";
             
-            messages.forEach(({ id, data }) => {
+            if (snapshot.empty) {
+                feed.innerHTML = "<div class='post' style='text-align: center; color: #718096;'>📭 Нет сообщений</div>";
+                return;
+            }
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const docId = doc.id;
+                
                 // Безопасное отображение времени
                 let timeString = 'только что';
                 try {
@@ -438,121 +315,20 @@
                     timeString = '...';
                 }
                 
-                // Подсветка поискового запроса
-                let nameDisplay = data.name || 'Аноним';
-                let emailDisplay = data.email || 'Нет email';
-                let messageDisplay = data.message || 'Нет текста';
-                
-                if (highlightTerm) {
-                    const regex = new RegExp(`(${highlightTerm})`, 'gi');
-                    nameDisplay = nameDisplay.replace(regex, '<span class="search-highlight">$1</span>');
-                    emailDisplay = emailDisplay.replace(regex, '<span class="search-highlight">$1</span>');
-                    messageDisplay = messageDisplay.replace(regex, '<span class="search-highlight">$1</span>');
-                }
-                
                 feed.innerHTML += `
                     <div class="post">
                         <span class="time">🕐 ${timeString}</span>
-                        <b>👤 ${nameDisplay}</b>
-                        <p>📧 ${emailDisplay}</p>
-                        <p>💬 ${messageDisplay}</p>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <button class="like-btn" onclick="processLike('${id}', event)">
-                                ❤️ Лайк
-                            </button>
-                            <span class="like-count">${data.likes || 0}</span>
-                        </div>
-                        <small style="display: block; margin-top: 10px; color: #a0aec0; text-align: right;">
-                            👆 Можно нажимать лайк бесконечно!
-                        </small>
+                        <b>👤 ${data.name || 'Аноним'}</b>
+                        <p>📧 ${data.email || 'Нет email'}</p>
+                        <button class="like-btn" onclick="processLike('${docId}')">
+                            ❤️ ${data.likes || 0} лайков
+                        </button>
                     </div>
                 `;
             });
-        }
-
-        // ===========================================
-        // REAL-TIME ПОДПИСКА
-        // ===========================================
-        const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            // Сохраняем все сообщения
-            allMessages = [];
-            
-            snapshot.forEach((doc) => {
-                allMessages.push({
-                    id: doc.id,
-                    data: doc.data()
-                });
-            });
-            
-            // Отображаем с учетом текущего поиска
-            if (currentSearchTerm) {
-                const filteredMessages = allMessages.filter(msg => {
-                    const data = msg.data;
-                    return (
-                        (data.name && data.name.toLowerCase().includes(currentSearchTerm)) ||
-                        (data.email && data.email.toLowerCase().includes(currentSearchTerm)) ||
-                        (data.message && data.message.toLowerCase().includes(currentSearchTerm))
-                    );
-                });
-                displayMessages(filteredMessages, currentSearchTerm);
-            } else {
-                displayMessages(allMessages);
-            }
         }, (error) => {
             console.error("Ошибка подписки:", error);
             document.getElementById('feed').innerHTML = "<div class='post' style='text-align: center; color: #e53e3e;'>❌ Ошибка загрузки</div>";
-        });
-
-        // ===========================================
-        // ПУБЛИКАЦИЯ СООБЩЕНИЯ
-        // ===========================================
-        document.getElementById('mainBtn').onclick = async () => {
-            const nameInput = document.getElementById('name');
-            const emailInput = document.getElementById('email');
-            const messageInput = document.getElementById('message');
-            
-            if (!nameInput.value.trim() || !emailInput.value.trim() || !messageInput.value.trim()) {
-                alert('Все поля должны быть заполнены');
-                return;
-            }
-            
-            const btn = document.getElementById('mainBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ Отправка...';
-            
-            try {
-                await addDoc(collection(db, "requests"), {
-                    name: nameInput.value.trim(),
-                    email: emailInput.value.trim(),
-                    message: messageInput.value.trim(),
-                    likes: 0,
-                    timestamp: serverTimestamp()
-                });
-                
-                nameInput.value = '';
-                emailInput.value = '';
-                messageInput.value = '';
-                
-            } catch (error) {
-                console.error('Ошибка:', error);
-                alert('Ошибка: ' + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '📤 Опубликовать';
-            }
-        };
-
-        // Обработчики поиска
-        document.getElementById('searchBtn').onclick = window.searchMessages;
-        document.getElementById('clearSearchBtn').onclick = window.clearSearch;
-        
-        // Поиск по нажатию Enter
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                window.searchMessages();
-            }
         });
     </script>
 </body>
