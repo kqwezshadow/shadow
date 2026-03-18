@@ -51,7 +51,7 @@
             border-radius: 2px;
         }
         
-        input {
+        input, textarea {
             width: 100%;
             padding: 15px 20px;
             margin: 10px 0;
@@ -62,42 +62,51 @@
             background: white;
         }
         
-        input:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        input::placeholder {
-            color: #a0aec0;
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
         }
         
-        button#mainBtn {
+        button {
+            flex: 1;
             background: linear-gradient(90deg, #667eea, #764ba2);
             color: white;
             border: none;
             padding: 16px;
             border-radius: 12px;
-            width: 100%;
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 15px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        button#mainBtn:hover {
+        button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
         
-        button#mainBtn:disabled {
+        button:disabled {
             background: #cbd5e0;
             transform: none;
             box-shadow: none;
             cursor: not-allowed;
+        }
+        
+        button.secondary {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+        }
+        
+        button.danger {
+            background: linear-gradient(90deg, #f56565, #e53e3e);
         }
         
         #feed {
@@ -160,49 +169,56 @@
             border-left: 4px solid #667eea;
         }
         
-        .like-btn {
-            cursor: pointer;
-            border: none;
-            background: linear-gradient(90deg, #ed64a6, #d53f8c);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
+        .post-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 8px;
             font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
+            text-transform: none;
+        }
+        
+        .edit-btn {
+            background: linear-gradient(90deg, #4299e1, #3182ce);
+        }
+        
+        .delete-btn {
+            background: linear-gradient(90deg, #f56565, #e53e3e);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 5px 15px rgba(213, 63, 140, 0.3);
+            z-index: 1000;
         }
         
-        .like-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(213, 63, 140, 0.4);
+        .modal.active {
+            display: flex;
         }
         
-        .like-btn:active {
-            transform: scale(0.95);
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
         }
         
-        .like-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        @media (max-width: 600px) {
-            body {
-                padding: 15px 10px;
-            }
-            
-            .container {
-                padding: 20px;
-            }
-            
-            h3 {
-                font-size: 20px;
-            }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -211,16 +227,35 @@
         <h3>🚀 Панель управления данными</h3>
         <input type="text" id="name" placeholder="Имя профиля">
         <input type="email" id="email" placeholder="Рабочий Email">
-        <button id="mainBtn">📤 Опубликовать в облако</button>
+        <textarea id="message" placeholder="Текст сообщения" rows="3"></textarea>
+        <div class="button-group">
+            <button id="mainBtn">📤 Опубликовать</button>
+            <button id="statsBtn" class="secondary">📊 Статистика</button>
+        </div>
     </div>
 
     <div id="feed"></div>
+
+    <!-- Модальное окно для редактирования -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">✏️ Редактировать сообщение</h3>
+            <input type="text" id="editName" placeholder="Имя">
+            <input type="email" id="editEmail" placeholder="Email">
+            <textarea id="editMessage" placeholder="Текст сообщения" rows="3"></textarea>
+            <input type="hidden" id="editId">
+            <div class="modal-buttons">
+                <button id="saveEditBtn" class="secondary">💾 Сохранить</button>
+                <button id="cancelEditBtn" class="danger">❌ Отмена</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import {
             getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-            serverTimestamp, updateDoc, doc, increment
+            serverTimestamp, updateDoc, doc, increment, deleteDoc, getDocs
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics.js";
 
@@ -235,50 +270,129 @@
             measurementId: "G-KS7JWV33JS"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
         // ===========================================
-        // ФУНКЦИЯ 1: ОТПРАВКА СООБЩЕНИЯ
+        // ФУНКЦИЯ 1: ПОЛУЧЕНИЕ СТАТИСТИКИ
         // ===========================================
-        window.publishMessage = async () => {
-            const nameInput = document.getElementById('name');
-            const emailInput = document.getElementById('email');
-            const btn = document.getElementById('mainBtn');
+        window.getCollectionStats = async () => {
+            const statsBtn = document.getElementById('statsBtn');
+            const originalText = statsBtn.innerHTML;
             
-            // Валидация
-            if (!nameInput.value.trim()) {
-                alert('Имя не может быть пустым');
-                return;
-            }
-            
-            if (!emailInput.value.trim() || !emailInput.value.includes('@')) {
-                alert('Введите корректный email');
-                return;
-            }
-            
-            // Блокируем кнопку
-            btn.disabled = true;
-            btn.textContent = '⏳ Отправка...';
+            statsBtn.disabled = true;
+            statsBtn.innerHTML = '⏳ Загрузка...';
             
             try {
-                // Создаем документ
-                await addDoc(collection(db, "requests"), {
-                    name: nameInput.value.trim(),
-                    email: emailInput.value.trim(),
-                    likes: 0,
-                    timestamp: serverTimestamp()
+                const querySnapshot = await getDocs(collection(db, "requests"));
+                
+                let totalLikes = 0;
+                let totalMessages = querySnapshot.size;
+                let uniqueUsers = new Set();
+                let totalWords = 0;
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    totalLikes += data.likes || 0;
+                    if (data.email) {
+                        uniqueUsers.add(data.email);
+                    }
+                    if (data.message) {
+                        totalWords += data.message.split(' ').length;
+                    }
                 });
                 
-                // Очищаем поля
-                nameInput.value = '';
-                emailInput.value = '';
+                const stats = {
+                    totalMessages,
+                    totalLikes,
+                    uniqueUsers: uniqueUsers.size,
+                    averageLikes: totalMessages ? (totalLikes / totalMessages).toFixed(1) : 0,
+                    averageWords: totalMessages ? Math.round(totalWords / totalMessages) : 0
+                };
                 
-                // Уведомление
+                // Показываем статистику
+                const statsMessage = `
+                    📊 СТАТИСТИКА КОЛЛЕКЦИИ:
+                    
+                    • Всего сообщений: ${stats.totalMessages}
+                    • Всего лайков: ${stats.totalLikes}
+                    • Уникальных пользователей: ${stats.uniqueUsers}
+                    • Среднее лайков: ${stats.averageLikes}
+                    • Средняя длина сообщения: ${stats.averageWords} слов
+                `;
+                
+                alert(statsMessage);
+                
+                // Логируем в консоль для разработчика
+                console.log('📊 Статистика:', stats);
+                
+                return stats;
+                
+            } catch (error) {
+                console.error('Ошибка при получении статистики:', error);
+                
+                let errorMessage = 'Ошибка: ' + error.message;
+                if (error.code === 'permission-denied') {
+                    errorMessage = '🔒 Нет прав для чтения статистики';
+                }
+                
+                alert(errorMessage);
+                
+            } finally {
+                statsBtn.disabled = false;
+                statsBtn.innerHTML = originalText;
+            }
+        };
+
+        // ===========================================
+        // ФУНКЦИЯ 2: РЕДАКТИРОВАНИЕ СООБЩЕНИЯ
+        // ===========================================
+        window.editMessage = (docId, currentName, currentEmail, currentMessage) => {
+            // Заполняем модальное окно
+            document.getElementById('editId').value = docId;
+            document.getElementById('editName').value = currentName || '';
+            document.getElementById('editEmail').value = currentEmail || '';
+            document.getElementById('editMessage').value = currentMessage || '';
+            
+            // Показываем модальное окно
+            document.getElementById('editModal').classList.add('active');
+        };
+
+        // Функция сохранения изменений
+        window.saveEditedMessage = async () => {
+            const docId = document.getElementById('editId').value;
+            const newName = document.getElementById('editName').value.trim();
+            const newEmail = document.getElementById('editEmail').value.trim();
+            const newMessage = document.getElementById('editMessage').value.trim();
+            
+            if (!newName || !newEmail || !newMessage) {
+                alert('Все поля должны быть заполнены');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveEditBtn');
+            const originalText = saveBtn.innerHTML;
+            
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '⏳ Сохранение...';
+            
+            try {
+                const docRef = doc(db, "requests", docId);
+                
+                await updateDoc(docRef, {
+                    name: newName,
+                    email: newEmail,
+                    message: newMessage,
+                    editedAt: serverTimestamp()
+                });
+                
+                // Закрываем модальное окно
+                document.getElementById('editModal').classList.remove('active');
+                
+                // Уведомление об успехе
                 const notification = document.createElement('div');
-                notification.textContent = '✅ Данные успешно отправлены!';
+                notification.textContent = '✅ Сообщение обновлено';
                 notification.style.cssText = `
                     position: fixed;
                     top: 20px;
@@ -288,7 +402,7 @@
                     color: white;
                     border-radius: 8px;
                     font-weight: 500;
-                    z-index: 1000;
+                    z-index: 1001;
                     animation: slideIn 0.3s ease;
                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 `;
@@ -299,74 +413,18 @@
                 }, 3000);
                 
             } catch (error) {
-                console.error('Ошибка:', error);
+                console.error('Ошибка при редактировании:', error);
                 
                 let errorMessage = 'Ошибка: ' + error.message;
                 if (error.code === 'permission-denied') {
-                    errorMessage = '🔒 Ошибка безопасности: правила Firestore заблокировали запрос';
+                    errorMessage = '🔒 Изменение запрещено правилами безопасности';
                 }
                 
                 alert(errorMessage);
                 
             } finally {
-                // Разблокируем кнопку
-                btn.disabled = false;
-                btn.textContent = '📤 Опубликовать в облако';
-            }
-        };
-
-        // ===========================================
-        // ФУНКЦИЯ 2: АТОМАРНОЕ ОБНОВЛЕНИЕ ЛАЙКОВ
-        // ===========================================
-        window.processLike = async (documentId, event) => {
-            const docRef = doc(db, "requests", documentId);
-            const button = event?.target;
-            const originalText = button?.innerHTML;
-            
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '⏳';
-            }
-            
-            try {
-                // Атомарная операция increment
-                await updateDoc(docRef, { 
-                    likes: increment(1) 
-                });
-                
-                console.log(`Лайк для документа ${documentId} добавлен`);
-                
-                // Визуальная обратная связь
-                if (button) {
-                    button.innerHTML = '❤️ +1';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                    }, 200);
-                }
-                
-            } catch (error) {
-                console.error("Ошибка при добавлении лайка:", error);
-                
-                if (button) {
-                    button.innerHTML = '❌';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                    }, 1000);
-                }
-                
-                let errorMessage = 'Ошибка: ' + error.message;
-                if (error.code === 'permission-denied') {
-                    errorMessage = '🔒 Правила безопасности запретили это действие';
-                } else if (error.code === 'not-found') {
-                    errorMessage = '📄 Документ не найден';
-                }
-                
-                alert(errorMessage);
-                
-            } finally {
-                if (button) {
-                    button.disabled = false;
-                }
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
             }
         };
 
@@ -404,14 +462,20 @@
                     timeString = '...';
                 }
                 
+                // Отметка о редактировании
+                const editedMark = data.editedAt ? ' (ред.)' : '';
+                
                 feed.innerHTML += `
-                    <div class="post">
-                        <span class="time">🕐 ${timeString}</span>
+                    <div class="post" id="post-${docId}">
+                        <span class="time">🕐 ${timeString}${editedMark}</span>
                         <b>👤 ${data.name || 'Аноним'}</b>
                         <p>📧 ${data.email || 'Нет email'}</p>
-                        <button class="like-btn" onclick="processLike('${docId}', event)">
-                            ❤️ ${data.likes || 0} лайков
-                        </button>
+                        <p>💬 ${data.message || 'Нет текста'}</p>
+                        <div class="post-actions">
+                            <button class="action-btn edit-btn" onclick="editMessage('${docId}', '${data.name || ''}', '${data.email || ''}', '${data.message || ''}')">
+                                ✏️ Редактировать
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -420,8 +484,64 @@
             document.getElementById('feed').innerHTML = "<div class='post' style='text-align: center; color: #e53e3e;'>❌ Ошибка загрузки</div>";
         });
 
-        // Привязываем первую функцию к кнопке
-        document.getElementById('mainBtn').onclick = window.publishMessage;
+        // ===========================================
+        // ОБРАБОТЧИКИ СОБЫТИЙ
+        // ===========================================
+        
+        // Публикация сообщения
+        document.getElementById('mainBtn').onclick = async () => {
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const messageInput = document.getElementById('message');
+            
+            if (!nameInput.value.trim() || !emailInput.value.trim() || !messageInput.value.trim()) {
+                alert('Все поля должны быть заполнены');
+                return;
+            }
+            
+            const btn = document.getElementById('mainBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Отправка...';
+            
+            try {
+                await addDoc(collection(db, "requests"), {
+                    name: nameInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    message: messageInput.value.trim(),
+                    likes: 0,
+                    timestamp: serverTimestamp()
+                });
+                
+                nameInput.value = '';
+                emailInput.value = '';
+                messageInput.value = '';
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 Опубликовать';
+            }
+        };
+
+        // Статистика
+        document.getElementById('statsBtn').onclick = window.getCollectionStats;
+
+        // Модальное окно
+        document.getElementById('saveEditBtn').onclick = window.saveEditedMessage;
+        
+        document.getElementById('cancelEditBtn').onclick = () => {
+            document.getElementById('editModal').classList.remove('active');
+        };
+
+        // Закрытие по клику вне модального окна
+        window.onclick = (event) => {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                modal.classList.remove('active');
+            }
+        };
     </script>
 </body>
 </html>
