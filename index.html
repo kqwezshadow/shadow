@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Qazaq Connect | Образовательная платформа</title>
+    <title>kqwez | Dota Community</title>
     <!-- Подключаем шрифт Inter для современного вида -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #f0f2f5;
+            background: #0f0f12;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -27,24 +27,25 @@
         .container {
             width: 100%;
             max-width: 580px;
-            background: white;
+            background: #1a1a1f;
             padding: 24px;
             border-radius: 24px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
             margin-bottom: 24px;
             transition: all 0.2s ease;
+            border: 1px solid #2c2c32;
         }
 
         /* панель авторизации (гибкая) */
         .auth-bar {
-            background: white;
+            background: #14141a;
             padding: 12px 20px;
             border-radius: 60px;
             display: flex;
             align-items: center;
             gap: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            border: 1px solid #eef2f6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid #2c2c32;
         }
 
         .user-avatar {
@@ -52,35 +53,40 @@
             height: 44px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #1e6f3f;
-            background: #e9ecef;
+            border: 2px solid #ff7b2c;
+            background: #2a2a2f;
         }
 
         input, textarea {
             width: 100%;
             padding: 14px 16px;
             margin: 10px 0 8px 0;
-            border: 1px solid #e0e4e8;
+            border: 1px solid #2c2c32;
             border-radius: 20px;
             font-size: 0.95rem;
             font-family: 'Inter', sans-serif;
-            background: #ffffff;
+            background: #0a0a0e;
+            color: #e0e0e6;
             transition: 0.2s;
             outline: none;
         }
 
         input:focus, textarea:focus {
-            border-color: #1e6f3f;
-            box-shadow: 0 0 0 3px rgba(30, 111, 63, 0.15);
+            border-color: #ff7b2c;
+            box-shadow: 0 0 0 3px rgba(255, 123, 44, 0.2);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #5a5a66;
         }
 
         button {
-            background: #1e6f3f;
-            color: white;
+            background: #ff7b2c;
+            color: #0a0a0e;
             border: none;
             padding: 12px 18px;
             border-radius: 40px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 0.95rem;
             cursor: pointer;
             transition: 0.2s;
@@ -89,7 +95,7 @@
         }
 
         button:hover {
-            background: #0f5431;
+            background: #ff944d;
             transform: translateY(-1px);
         }
 
@@ -98,28 +104,29 @@
         }
 
         .logout-btn {
-            background: #e74c3c;
+            background: #c2410c;
+            color: white;
             padding: 8px 20px;
             width: auto;
             font-size: 0.85rem;
             border-radius: 40px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .logout-btn:hover {
-            background: #c0392b;
+            background: #9a3412;
         }
 
         .post {
-            background: #ffffff;
-            border: 1px solid #edf2f7;
+            background: #1a1a1f;
+            border: 1px solid #2c2c32;
             padding: 18px;
             margin-top: 18px;
             border-radius: 24px;
             width: 100%;
             max-width: 580px;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .post-header {
@@ -135,19 +142,19 @@
             height: 38px;
             border-radius: 50%;
             object-fit: cover;
-            background: #dee2e6;
-            border: 1px solid #e2e8f0;
+            background: #2a2a2f;
+            border: 1px solid #3a3a44;
         }
 
         .post-user-name {
             font-weight: 700;
             font-size: 0.95rem;
-            color: #1a2c3e;
+            color: #ffb347;
         }
 
         .time {
             font-size: 0.7rem;
-            color: #8e9eae;
+            color: #8e8e9e;
             margin-left: auto;
         }
 
@@ -155,14 +162,14 @@
             font-size: 0.95rem;
             line-height: 1.45;
             margin: 12px 0 12px 0;
-            color: #1f2a3a;
+            color: #cdcddf;
             word-break: break-word;
         }
 
         .like-btn {
-            background: #f1f5f9;
-            color: #2c3e50;
-            border: none;
+            background: #25252c;
+            color: #ffb347;
+            border: 1px solid #3a3a44;
             padding: 8px 18px;
             border-radius: 40px;
             width: auto;
@@ -176,13 +183,9 @@
         }
 
         .like-btn:hover {
-            background: #ffe6e6;
-            color: #c0392b;
-        }
-
-        .like-btn.liked {
-            background: #ffebee;
-            color: #e74c3c;
+            background: #2f2f38;
+            color: #ff7b2c;
+            border-color: #ff7b2c;
         }
 
         #feed {
@@ -196,29 +199,32 @@
         .info-message {
             text-align: center;
             padding: 32px 20px;
-            background: #ffffffdd;
+            background: #1a1a1f;
             border-radius: 32px;
-            color: #5a6e7c;
+            color: #8e8e9e;
             font-size: 0.9rem;
+            border: 1px solid #2c2c32;
         }
 
         hr {
             margin: 8px 0;
-            border-color: #ecf0f1;
+            border-color: #2c2c32;
         }
 
         .readonly-input {
-            background: #f8fafc;
-            color: #2d3e50;
+            background: #0f0f12;
+            color: #b0b0c0;
             font-weight: 500;
+            border-color: #2c2c32;
         }
 
         .brand {
-            font-weight: 700;
-            font-size: 1.35rem;
-            color: #1e6f3f;
-            margin-bottom: 8px;
-            letter-spacing: -0.3px;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: #ff7b2c;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 10px rgba(255, 123, 44, 0.3);
         }
 
         .flex-row {
@@ -226,26 +232,32 @@
             align-items: center;
             justify-content: space-between;
         }
+
+        .sub-brand {
+            color: #8e8e9e;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
 
-<div style="width:100%; max-width:580px; margin-bottom:8px;">
-    <div class="brand">🌿 Qazaq Bilim</div>
-    <p style="color:#5f7f6e; font-size:0.8rem;">Образовательное пространство · Делитесь мыслями</p>
+<div style="width:100%; max-width:580px; margin-bottom:12px;">
+    <div class="brand">⚔️ kqwez pl</div>
+    <p class="sub-brand">дота общество</p>
 </div>
 
 <!-- Секция авторизации (динамическая) -->
 <div id="authSection" class="container" style="padding: 12px 20px;">
     <div id="loginButtonWrapper" style="text-align: center;">
-        <button id="loginBtn" style="background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            🔑 Войти через Google
+        <button id="loginBtn" style="background: #ff7b2c; color: #0a0a0e; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700;">
+            🔥 Войти через Google
         </button>
     </div>
     <div id="userInfoPanel" style="display: none;">
         <div class="auth-bar">
             <img id="userPhoto" class="user-avatar" src="" alt="avatar">
-            <span id="userDisplayName" style="font-weight: 600; flex:1;"></span>
+            <span id="userDisplayName" style="font-weight: 600; flex:1; color:#ffb347;"></span>
             <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
         </div>
     </div>
@@ -253,11 +265,11 @@
 
 <!-- Форма создания записи (доступна только авторизованным) -->
 <div id="messageForm" class="container" style="display: none;">
-    <h3 style="margin-bottom: 12px; font-weight: 600;">✍️ Новая запись</h3>
+    <h3 style="margin-bottom: 12px; font-weight: 600; color:#ffb347;">💬 Новая запись</h3>
     <input type="text" id="nameField" placeholder="Имя" readonly class="readonly-input">
     <input type="email" id="emailField" placeholder="Email" readonly class="readonly-input">
-    <textarea id="contentInput" rows="3" placeholder="Поделитесь мыслью или образовательной заметкой..." style="resize: vertical;"></textarea>
-    <button id="publishBtn">📤 Опубликовать в облако</button>
+    <textarea id="contentInput" rows="3" placeholder="Поделись мыслью о доте, мете, патчах или просто поболтай..." style="resize: vertical;"></textarea>
+    <button id="publishBtn">📢 Опубликовать в чат</button>
 </div>
 
 <!-- Лента постов -->
@@ -318,7 +330,7 @@
             feedContainer.innerHTML = "";
             
             if (snapshot.empty) {
-                feedContainer.innerHTML = `<div class="info-message">✨ Пока нет записей. Будьте первым, кто поделится мыслью!</div>`;
+                feedContainer.innerHTML = `<div class="info-message">💀 Пока тихо... Напиши что-нибудь про доту, замутим обсуждение!</div>`;
                 return;
             }
             
@@ -326,9 +338,9 @@
                 const data = docSnap.data();
                 const docId = docSnap.id;
                 const likesCount = data.likes ?? 0;
-                const userName = data.name || "Аноним";
+                const userName = data.name || "Анонимный дотер";
                 const userEmail = data.email || "";
-                const userPhotoURL = data.photo || "https://ui-avatars.com/api/?background=1e6f3f&color=fff&bold=true&size=40&name=" + encodeURIComponent(userName);
+                const userPhotoURL = data.photo || "https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=40&name=" + encodeURIComponent(userName);
                 const postText = data.text || (data.content || "—");
                 const timestampRaw = data.timestamp;
                 
@@ -340,18 +352,18 @@
                     formattedTime = timestampRaw;
                 }
                 
-                // Создаём карточку поста (безопасная вёрстка, но фото через атрибуты)
+                // Создаём карточку поста
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post';
                 postDiv.innerHTML = `
                     <div class="post-header">
-                        <img class="post-avatar" src="${escapeHtml(userPhotoURL)}" alt="avatar" onerror="this.src='https://ui-avatars.com/api/?background=9aa9b1&color=fff&bold=true&size=40&name=?'">
+                        <img class="post-avatar" src="${escapeHtml(userPhotoURL)}" alt="avatar" onerror="this.src='https://ui-avatars.com/api/?background=8b5a2b&color=fff&bold=true&size=40&name=?'">
                         <span class="post-user-name">${escapeHtml(userName)}</span>
-                        <span class="time">📅 ${escapeHtml(formattedTime)}</span>
+                        <span class="time">🕒 ${escapeHtml(formattedTime)}</span>
                     </div>
                     <div class="post-text">${escapeHtml(postText)}</div>
                     <div class="flex-row" style="justify-content: flex-start;">
-                        <button class="like-btn" data-id="${docId}">❤️ ${likesCount} · Нравится</button>
+                        <button class="like-btn" data-id="${docId}">❤️ ${likesCount} · Плюсануть</button>
                     </div>
                 `;
                 
@@ -359,25 +371,23 @@
                 likeButton.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     try {
-                        // Атомарное увеличение счётчика лайков
                         await updateDoc(doc(db, "requests", docId), {
                             likes: increment(1)
                         });
-                        // Небольшая анимация обратной связи
                         likeButton.style.transform = "scale(0.96)";
                         setTimeout(() => { likeButton.style.transform = ""; }, 150);
                     } catch (err) {
                         console.error("Ошибка лайка:", err);
-                        alert("Не удалось поставить лайк. Проверьте интернет и правила безопасности Firebase.");
+                        alert("Не удалось поставить плюс. Проверь интернет и правила Firebase.");
                     }
                 });
                 
                 feedContainer.appendChild(postDiv);
             });
         }, (error) => {
-            console.error("Ошибка при получении ленты:", error);
+            console.error("Ошибка при получении чата:", error);
             if (feedContainer) {
-                feedContainer.innerHTML = `<div class="info-message">⚠️ Не удалось загрузить ленту. Проверьте подключение или правила Firestore.</div>`;
+                feedContainer.innerHTML = `<div class="info-message">⚠️ Не удалось загрузить сообщения. Проверь подключение или правила Firestore.</div>`;
             }
         });
     }
@@ -404,7 +414,7 @@
             messageForm.style.display = 'block';
             
             // Заполняем данные пользователя
-            const displayName = user.displayName || user.email?.split('@')[0] || "Учитель";
+            const displayName = user.displayName || user.email?.split('@')[0] || "Dota player";
             const photo = user.photoURL || "";
             const email = user.email || "";
             
@@ -412,7 +422,7 @@
             if (photo) {
                 userPhoto.src = photo;
             } else {
-                userPhoto.src = "https://ui-avatars.com/api/?background=2c6e49&color=fff&bold=true&size=44&name=" + encodeURIComponent(displayName);
+                userPhoto.src = "https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=44&name=" + encodeURIComponent(displayName);
             }
             userPhoto.alt = displayName;
             
@@ -420,7 +430,7 @@
             nameField.value = displayName;
             emailField.value = email;
             
-            // Запускаем / перезапускаем ленту (чтобы быть уверенными)
+            // Запускаем / перезапускаем ленту
             startRealtimeFeed();
             
         } else {
@@ -431,10 +441,10 @@
             
             // Очищаем ленту, показываем приглашение
             if (feedContainer) {
-                feedContainer.innerHTML = `<div class="info-message">🔐 Войдите через Google, чтобы читать и публиковать записи в образовательном сообществе.</div>`;
+                feedContainer.innerHTML = `<div class="info-message">🔐 Войдите, чтобы начать общаться в чате</div>`;
             }
             
-            // Отписываемся от snapshot'ов, чтобы не было ошибок доступа
+            // Отписываемся от snapshot'ов
             if (unsubscribeSnapshot) {
                 unsubscribeSnapshot();
                 unsubscribeSnapshot = null;
@@ -452,7 +462,7 @@
             if (error.code === 'auth/popup-blocked') {
                 alert("Всплывающее окно заблокировано браузером. Разрешите всплывающие окна для этого сайта.");
             } else {
-                alert("Не удалось войти. Попробуйте позже: " + error.message);
+                alert("Не удалось войти. Попробуй позже: " + error.message);
             }
         }
     };
@@ -467,17 +477,17 @@
         }
     };
     
-    // --- Публикация новой записи (добавление документа в коллекцию requests) ---
+    // --- Публикация новой записи ---
     publishBtn.onclick = async () => {
         const currentUser = auth.currentUser;
         if (!currentUser) {
-            alert("Необходимо войти в аккаунт, чтобы создать запись.");
+            alert("Нужно войти, чтобы писать в чат дота общества!");
             return;
         }
         
         const postContent = contentInput.value.trim();
         if (!postContent) {
-            alert("Пожалуйста, напишите текст записи.");
+            alert("Напиши что-нибудь про доту или просто поздоровайся 👾");
             return;
         }
         
@@ -488,45 +498,44 @@
         
         try {
             await addDoc(collection(db, "requests"), {
-                name: currentUser.displayName || currentUser.email?.split('@')[0] || "Пользователь",
+                name: currentUser.displayName || currentUser.email?.split('@')[0] || "Dota enjoyer",
                 email: currentUser.email,
                 photo: currentUser.photoURL || "",
                 text: postContent,
                 likes: 0,
                 timestamp: serverTimestamp()
             });
-            // Очищаем поле ввода
             contentInput.value = "";
-            // Лёгкое уведомление об успехе
-            alert("✅ Запись опубликована в облаке!");
+            // Короткий фидбек
+            const toastMsg = document.createElement('div');
+            toastMsg.textContent = "✅ Сообщение ушло в чат!";
+            toastMsg.style.cssText = "position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#ff7b2c; color:#0a0a0e; padding:8px 20px; border-radius:40px; font-weight:bold; z-index:1000; font-size:0.85rem;";
+            document.body.appendChild(toastMsg);
+            setTimeout(() => toastMsg.remove(), 2000);
         } catch (error) {
             console.error("Ошибка при публикации:", error);
-            alert("❌ Ошибка публикации. Проверьте правила безопасности Firestore: " + (error.message || "доступ запрещён"));
+            alert("❌ Ошибка отправки. Проверь правила безопасности Firestore: " + (error.message || "доступ запрещён"));
         } finally {
             publishBtn.innerText = originalText;
             publishBtn.disabled = false;
         }
     };
     
-    // Добавляем небольшой эффект для авто-обновления формы при изменении пользователя (доп. страховка)
+    // Инициализация при загрузке
     window.addEventListener('load', () => {
-        // Проверяем существующий сеанс при загрузке
         if (auth.currentUser) {
-            // уже обработано onAuthStateChanged, но дублируем для формы
             nameField.value = auth.currentUser.displayName || "";
             emailField.value = auth.currentUser.email || "";
             if (userPhoto) userPhoto.src = auth.currentUser.photoURL || "";
             userDisplayName.innerText = auth.currentUser.displayName || auth.currentUser.email;
         } else {
             if (feedContainer && !unsubscribeSnapshot) {
-                feedContainer.innerHTML = `<div class="info-message">📚 Войдите, чтобы видеть образовательную ленту сообщества.</div>`;
+                feedContainer.innerHTML = `<div class="info-message">🔐 Войдите, чтобы начать общаться в чате</div>`;
             }
         }
     });
     
-    // дополнительно: если лента уже подписана, но пользователь вышел — корректно очищаем
-    // Также прослушиваем изменения сети — для UX, но основная логика выше
-    console.log("✅ Образовательное приложение загружено — авторизация, лайки, посты в реальном времени");
+    console.log("🔥 kqwez pl — дота общество запущена!");
 </script>
 </body>
 </html>
