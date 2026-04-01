@@ -22,7 +22,6 @@
             min-height: 100vh;
         }
 
-        /* Основные контейнеры */
         .container {
             width: 100%;
             max-width: 580px;
@@ -31,6 +30,25 @@
             border-radius: 24px;
             margin-bottom: 20px;
             border: 1px solid #2c2c32;
+        }
+
+        /* Панель авторизации */
+        .auth-bar {
+            background: #14141a;
+            padding: 12px 20px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid #2c2c32;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ff7b2c;
         }
 
         /* Навигация */
@@ -65,40 +83,13 @@
             color: #ffb347;
         }
 
-        /* Панель авторизации */
-        .auth-bar {
-            background: #14141a;
-            padding: 12px 20px;
-            border-radius: 60px;
+        /* Вход */
+        .login-btn {
+            background: #4285F4;
             display: flex;
             align-items: center;
-            gap: 16px;
-            border: 1px solid #2c2c32;
-        }
-
-        .user-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ff7b2c;
-        }
-
-        /* Формы */
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 16px;
-            margin: 8px 0;
-            border: 1px solid #2c2c32;
-            border-radius: 20px;
-            background: #0a0a0e;
-            color: #e0e0e6;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            border-color: #ff7b2c;
+            justify-content: center;
+            gap: 10px;
         }
 
         button {
@@ -118,11 +109,6 @@
             transform: translateY(-1px);
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         .logout-btn {
             background: #c2410c;
             color: white;
@@ -130,13 +116,13 @@
             padding: 8px 20px;
         }
 
-        /* Список диалогов */
-        .dialogs-list {
+        /* Диалоги */
+        .dialogs-list, .users-list {
             max-height: 500px;
             overflow-y: auto;
         }
 
-        .dialog-item {
+        .dialog-item, .user-item {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -149,7 +135,7 @@
             background: #14141a;
         }
 
-        .dialog-item:hover {
+        .dialog-item:hover, .user-item:hover {
             background: #25252c;
             border-color: #ff7b2c;
         }
@@ -275,7 +261,7 @@
             margin-bottom: 4px;
         }
 
-        /* Форма отправки сообщения */
+        /* Форма отправки */
         .message-input-area {
             display: flex;
             gap: 10px;
@@ -286,6 +272,12 @@
             flex: 1;
             resize: none;
             margin: 0;
+            padding: 12px;
+            border-radius: 20px;
+            background: #0a0a0e;
+            border: 1px solid #2c2c32;
+            color: white;
+            font-family: inherit;
         }
 
         .send-btn {
@@ -299,9 +291,13 @@
             padding: 12px;
             border-radius: 40px;
             cursor: pointer;
+            font-size: 1.2rem;
         }
 
-        /* Общие */
+        input, textarea {
+            outline: none;
+        }
+
         .brand {
             font-weight: 800;
             font-size: 1.6rem;
@@ -350,6 +346,7 @@
             width: 26px;
             height: 26px;
             cursor: pointer;
+            border: none;
         }
 
         .file-input-label {
@@ -363,15 +360,6 @@
 
         input[type="file"] {
             display: none;
-        }
-
-        .online-status {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4caf50;
-            display: inline-block;
-            margin-left: 8px;
         }
 
         .modal {
@@ -394,6 +382,16 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        .search-input {
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 20px;
+            background: #0a0a0e;
+            border: 1px solid #2c2c32;
+            color: white;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -403,9 +401,10 @@
     <p class="sub-brand">личные сообщения · дота общество</p>
 </div>
 
+<!-- Панель авторизации -->
 <div id="authSection" class="container">
     <div id="loginButtonWrapper">
-        <button id="demoLoginBtn">🔥 Войти в дота общество</button>
+        <button id="loginBtn" class="login-btn">🔑 Войти через Google</button>
     </div>
     <div id="userInfoPanel" style="display: none;">
         <div class="auth-bar">
@@ -419,7 +418,7 @@
 <!-- Навигация -->
 <div id="navTabs" class="nav-tabs" style="display: none;">
     <div class="nav-tab active" data-tab="dialogs">💬 Диалоги</div>
-    <div class="nav-tab" data-tab="users">👥 Пользователи</div>
+    <div class="nav-tab" data-tab="users">👥 Написать сообщение</div>
 </div>
 
 <!-- Список диалогов -->
@@ -430,28 +429,27 @@
     </div>
 </div>
 
-<!-- Список пользователей для нового диалога -->
+<!-- Список пользователей -->
 <div id="usersPanel" class="container" style="display: none;">
     <h3 style="color:#ffb347; margin-bottom:16px;">👥 Все пользователи</h3>
-    <input type="text" id="searchUsers" placeholder="🔍 Поиск по имени...">
-    <div id="usersList" class="dialogs-list" style="margin-top:12px;">
+    <input type="text" id="searchUsers" class="search-input" placeholder="🔍 Поиск по имени или email...">
+    <div id="usersList" class="users-list" style="margin-top:12px;">
         <div class="info-message">Загрузка пользователей...</div>
     </div>
 </div>
 
-<!-- Чат с пользователем -->
+<!-- Чат -->
 <div id="chatPanel" class="container" style="display: none;">
     <div class="chat-header">
         <button id="backToDialogsBtn" class="back-btn">← Назад</button>
         <img id="chatAvatar" class="user-avatar" style="width:40px; height:40px;" src="">
         <div style="flex:1;">
             <span id="chatUserName" style="font-weight:700; color:#ffb347;"></span>
-            <span id="chatOnlineStatus" class="online-status" style="display:none;"></span>
         </div>
     </div>
     <div id="messagesArea" class="messages-area"></div>
     <div class="message-input-area">
-        <label class="attach-btn" style="margin:0;">
+        <label class="attach-btn" style="margin:0; cursor:pointer;">
             📷
             <input type="file" id="chatImageInput" accept="image/*" style="display:none;">
         </label>
@@ -473,8 +471,11 @@
     import { 
         getFirestore, collection, query, where, orderBy, onSnapshot, 
         addDoc, serverTimestamp, getDocs, doc, updateDoc, setDoc, 
-        limit, getDoc, Timestamp
+        getDoc, limit, Timestamp
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { 
+        getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC1FadsdnN8ZnKkdgYKqfMIOgxyph5zM3A",
@@ -488,6 +489,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
     
     let currentUser = null;
     let currentChatUser = null;
@@ -496,12 +499,12 @@
     let unsubscribeMessages = null;
     
     // DOM элементы
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
     const loginButtonWrapper = document.getElementById('loginButtonWrapper');
     const userInfoPanel = document.getElementById('userInfoPanel');
     const userPhoto = document.getElementById('userPhoto');
     const userDisplayName = document.getElementById('userDisplayName');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const demoLoginBtn = document.getElementById('demoLoginBtn');
     const navTabs = document.getElementById('navTabs');
     const dialogsPanel = document.getElementById('dialogsPanel');
     const usersPanel = document.getElementById('usersPanel');
@@ -515,19 +518,17 @@
     const backToDialogsBtn = document.getElementById('backToDialogsBtn');
     const chatUserName = document.getElementById('chatUserName');
     const chatAvatar = document.getElementById('chatAvatar');
-    const chatOnlineStatus = document.getElementById('chatOnlineStatus');
     const chatImageInput = document.getElementById('chatImageInput');
     const chatImagePreview = document.getElementById('chatImagePreview');
     const chatPreviewImg = document.getElementById('chatPreviewImg');
     const chatRemoveImage = document.getElementById('chatRemoveImage');
     
     let selectedImageDataURL = null;
-    
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');
     
     // Сжатие изображения
-    function compressImage(file, maxWidth = 400, quality = 0.5) {
+    function compressImage(file, maxWidth = 400, quality = 0.6) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -554,12 +555,23 @@
         });
     }
     
-    // Генерация ID диалога (сортировка имён)
+    // Получение ID диалога
     function getDialogId(user1, user2) {
         return [user1, user2].sort().join('_');
     }
     
-    // Загрузка диалогов пользователя
+    // Сохранение пользователя в Firestore
+    async function saveUserToFirestore(user) {
+        const userRef = doc(db, "users", user.email);
+        await setDoc(userRef, {
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            lastActive: serverTimestamp()
+        }, { merge: true });
+    }
+    
+    // Загрузка диалогов
     function loadDialogs() {
         if (unsubscribeDialogs) unsubscribeDialogs();
         
@@ -584,19 +596,22 @@
                 const otherUser = dialog.participants.find(p => p !== currentUser.email);
                 const unread = dialog.unread?.[currentUser.email] || 0;
                 
+                // Получаем имя пользователя
+                const otherName = otherUser.split('@')[0];
+                
                 const dialogDiv = document.createElement('div');
                 dialogDiv.className = `dialog-item ${unread > 0 ? 'unread' : ''}`;
                 dialogDiv.innerHTML = `
-                    <img class="dialog-avatar" src="https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=48&name=${encodeURIComponent(otherUser.split('@')[0])}">
+                    <img class="dialog-avatar" src="https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=48&name=${encodeURIComponent(otherName)}">
                     <div class="dialog-info">
-                        <div class="dialog-name">${escapeHtml(otherUser.split('@')[0])}</div>
+                        <div class="dialog-name">${escapeHtml(otherName)}</div>
                         <div class="dialog-last-message">${escapeHtml(dialog.lastMessage || '')}</div>
                     </div>
                     <div class="dialog-time">${formatTime(dialog.lastMessageTime)}</div>
                     ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
                 `;
                 
-                dialogDiv.onclick = () => openChat(otherUser);
+                dialogDiv.onclick = () => openChat(otherUser, otherName);
                 dialogsList.appendChild(dialogDiv);
             });
         });
@@ -605,8 +620,7 @@
     // Загрузка всех пользователей
     async function loadUsers() {
         const usersRef = collection(db, "users");
-        const q = query(usersRef, limit(50));
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(usersRef);
         
         usersList.innerHTML = "";
         const users = [];
@@ -624,40 +638,38 @@
         
         users.forEach(user => {
             const userDiv = document.createElement('div');
-            userDiv.className = 'dialog-item';
+            userDiv.className = 'user-item';
             userDiv.innerHTML = `
                 <img class="dialog-avatar" src="${user.photoURL || 'https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=48&name=' + encodeURIComponent(user.displayName)}">
                 <div class="dialog-info">
                     <div class="dialog-name">${escapeHtml(user.displayName)}</div>
                     <div class="dialog-last-message">${escapeHtml(user.email)}</div>
                 </div>
-                <button class="back-btn" style="width:auto; padding:6px 12px;">💬</button>
+                <button class="back-btn" style="width:auto; padding:6px 12px;">💬 Написать</button>
             `;
             const btn = userDiv.querySelector('button');
             btn.onclick = (e) => {
                 e.stopPropagation();
-                openChat(user.email);
+                openChat(user.email, user.displayName);
             };
-            userDiv.onclick = () => openChat(user.email);
+            userDiv.onclick = () => openChat(user.email, user.displayName);
             usersList.appendChild(userDiv);
         });
     }
     
-    // Открыть чат с пользователем
-    async function openChat(userEmail) {
+    // Открыть чат
+    async function openChat(userEmail, userName) {
         currentChatUser = userEmail;
-        chatUserName.innerText = userEmail.split('@')[0];
-        chatAvatar.src = `https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=40&name=${encodeURIComponent(userEmail.split('@')[0])}`;
+        chatUserName.innerText = userName || userEmail.split('@')[0];
+        chatAvatar.src = `https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=40&name=${encodeURIComponent(userName || userEmail.split('@')[0])}`;
         
-        // Скрыть другие панели, показать чат
         dialogsPanel.style.display = 'none';
         usersPanel.style.display = 'none';
         chatPanel.style.display = 'block';
         
-        // Загрузить сообщения
         loadMessages();
         
-        // Отметить диалог как прочитанный
+        // Отметить как прочитанное
         const dialogId = getDialogId(currentUser.email, userEmail);
         const dialogRef = doc(db, "dialogs", dialogId);
         const dialogSnap = await getDoc(dialogRef);
@@ -690,12 +702,12 @@
                 
                 let imageHtml = '';
                 if (msg.imageUrl) {
-                    imageHtml = `<img class="message-image" src="${escapeHtml(msg.imageUrl)}" onclick="openModalImage('${escapeHtml(msg.imageUrl)}')">`;
+                    imageHtml = `<img class="message-image" src="${escapeHtml(msg.imageUrl)}" onclick="window.openModal('${escapeHtml(msg.imageUrl)}')">`;
                 }
                 
                 messageDiv.innerHTML = `
                     <div class="message-bubble">
-                        ${!isOutgoing ? `<div class="message-sender">${msg.senderName || msg.sender.split('@')[0]}</div>` : ''}
+                        ${!isOutgoing ? `<div class="message-sender">${escapeHtml(msg.senderName || msg.sender.split('@')[0])}</div>` : ''}
                         ${msg.text ? `<div>${escapeHtml(msg.text)}</div>` : ''}
                         ${imageHtml}
                         <div class="message-time">${formatTime(msg.timestamp)}</div>
@@ -705,7 +717,6 @@
                 messagesArea.appendChild(messageDiv);
             });
             
-            // Скролл вниз
             messagesArea.scrollTop = messagesArea.scrollHeight;
         });
     }
@@ -773,7 +784,7 @@
         });
     }
     
-    window.openModalImage = (url) => {
+    window.openModal = (url) => {
         modal.style.display = "block";
         modalImg.src = url;
     };
@@ -782,27 +793,30 @@
         modal.style.display = "none";
     };
     
-    // Сохранить пользователя в Firestore
-    async function saveUserToFirestore(user) {
-        const userRef = doc(db, "users", user.email);
-        await setDoc(userRef, {
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            lastActive: serverTimestamp()
-        }, { merge: true });
-    }
+    // Обработка аутентификации
+    loginBtn.onclick = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            console.log("Успешный вход:", result.user.displayName);
+        } catch (error) {
+            console.error("Ошибка входа:", error);
+            alert("Ошибка входа: " + error.message);
+        }
+    };
     
-    // Обработка входа
-    demoLoginBtn.onclick = () => {
-        const demoName = prompt("Введите ваше имя:", "DotaPlayer");
-        if (demoName && demoName.trim()) {
+    logoutBtn.onclick = async () => {
+        await signOut(auth);
+    };
+    
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
             currentUser = {
-                displayName: demoName.trim(),
-                email: `${demoName.trim().toLowerCase().replace(/\s/g, '_')}@kqwez.dm`,
-                photoURL: `https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=44&name=${encodeURIComponent(demoName.trim())}`
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL
             };
-            saveUserToFirestore(currentUser);
+            
+            await saveUserToFirestore(currentUser);
             
             loginButtonWrapper.style.display = 'none';
             userInfoPanel.style.display = 'block';
@@ -812,24 +826,22 @@
             userPhoto.src = currentUser.photoURL;
             
             loadDialogs();
+        } else {
+            currentUser = null;
+            currentChatUser = null;
+            if (unsubscribeDialogs) unsubscribeDialogs();
+            if (unsubscribeMessages) unsubscribeMessages();
+            
+            loginButtonWrapper.style.display = 'block';
+            userInfoPanel.style.display = 'none';
+            navTabs.style.display = 'none';
+            dialogsPanel.style.display = 'none';
+            usersPanel.style.display = 'none';
+            chatPanel.style.display = 'none';
         }
-    };
+    });
     
-    logoutBtn.onclick = () => {
-        currentUser = null;
-        currentChatUser = null;
-        if (unsubscribeDialogs) unsubscribeDialogs();
-        if (unsubscribeMessages) unsubscribeMessages();
-        
-        loginButtonWrapper.style.display = 'block';
-        userInfoPanel.style.display = 'none';
-        navTabs.style.display = 'none';
-        dialogsPanel.style.display = 'none';
-        usersPanel.style.display = 'none';
-        chatPanel.style.display = 'none';
-    };
-    
-    // Навигация между вкладками
+    // Навигация
     document.querySelectorAll('.nav-tab').forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -867,11 +879,11 @@
         }
     });
     
-    // Загрузка изображения в чат
+    // Загрузка изображения
     chatImageInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
-            const compressed = await compressImage(file, 400, 0.5);
+            const compressed = await compressImage(file, 400, 0.6);
             selectedImageDataURL = compressed;
             chatPreviewImg.src = compressed;
             chatImagePreview.style.display = 'block';
@@ -892,37 +904,42 @@
         const snapshot = await getDocs(usersRef);
         
         usersList.innerHTML = "";
+        let found = false;
+        
         snapshot.forEach(doc => {
             const user = doc.data();
             if (user.email !== currentUser?.email && 
                 (user.displayName.toLowerCase().includes(searchTerm) || 
                  user.email.toLowerCase().includes(searchTerm))) {
+                found = true;
                 const userDiv = document.createElement('div');
-                userDiv.className = 'dialog-item';
+                userDiv.className = 'user-item';
                 userDiv.innerHTML = `
                     <img class="dialog-avatar" src="${user.photoURL || 'https://ui-avatars.com/api/?background=ff7b2c&color=0a0a0e&bold=true&size=48&name=' + encodeURIComponent(user.displayName)}">
                     <div class="dialog-info">
                         <div class="dialog-name">${escapeHtml(user.displayName)}</div>
                         <div class="dialog-last-message">${escapeHtml(user.email)}</div>
                     </div>
-                    <button class="back-btn" style="width:auto; padding:6px 12px;">💬</button>
+                    <button class="back-btn" style="width:auto; padding:6px 12px;">💬 Написать</button>
                 `;
                 const btn = userDiv.querySelector('button');
                 btn.onclick = (e) => {
                     e.stopPropagation();
-                    openChat(user.email);
+                    openChat(user.email, user.displayName);
                 };
-                userDiv.onclick = () => openChat(user.email);
+                userDiv.onclick = () => openChat(user.email, user.displayName);
                 usersList.appendChild(userDiv);
             }
         });
         
-        if (usersList.children.length === 0) {
+        if (!found && searchTerm) {
             usersList.innerHTML = '<div class="info-message">👥 Пользователи не найдены</div>';
+        } else if (!found && !searchTerm) {
+            loadUsers();
         }
     });
     
-    console.log("💬 Система личных сообщений (DM) загружена!");
+    console.log("💬 Система личных сообщений с Google Auth загружена!");
 </script>
 </body>
 </html>
