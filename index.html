@@ -32,7 +32,6 @@
             border: 1px solid #2c2c32;
         }
 
-        /* Панель авторизации */
         .auth-bar {
             background: #14141a;
             padding: 12px 20px;
@@ -51,7 +50,6 @@
             border: 2px solid #ff7b2c;
         }
 
-        /* Навигация */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -83,13 +81,19 @@
             color: #ffb347;
         }
 
-        /* Вход */
         .login-btn {
             background: #4285F4;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+        }
+
+        .switch-account-btn {
+            background: #2c2c32;
+            color: #ffb347;
+            margin-top: 10px;
+            font-size: 0.85rem;
         }
 
         button {
@@ -116,7 +120,6 @@
             padding: 8px 20px;
         }
 
-        /* Диалоги */
         .dialogs-list, .users-list {
             max-height: 500px;
             overflow-y: auto;
@@ -184,7 +187,6 @@
             font-weight: 700;
         }
 
-        /* Чат */
         .chat-header {
             display: flex;
             align-items: center;
@@ -261,7 +263,6 @@
             margin-bottom: 4px;
         }
 
-        /* Форма отправки */
         .message-input-area {
             display: flex;
             gap: 10px;
@@ -392,6 +393,22 @@
             color: white;
             width: 100%;
         }
+
+        .current-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0a0a0e;
+            padding: 10px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+
+        .small-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -405,13 +422,20 @@
 <div id="authSection" class="container">
     <div id="loginButtonWrapper">
         <button id="loginBtn" class="login-btn">🔑 Войти через Google</button>
+        <div style="margin-top: 12px; font-size: 0.75rem; color: #8e8e9e; text-align: center;">
+            💡 При входе можно выбрать любой Google аккаунт
+        </div>
     </div>
     <div id="userInfoPanel" style="display: none;">
         <div class="auth-bar">
             <img id="userPhoto" class="user-avatar" src="">
-            <span id="userDisplayName" style="flex:1; color:#ffb347; font-weight:600;"></span>
+            <div style="flex:1;">
+                <span id="userDisplayName" style="font-weight:600; color:#ffb347;"></span>
+                <div style="font-size:0.7rem; color:#8e8e9e;" id="userEmail"></div>
+            </div>
             <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
         </div>
+        <button id="switchAccountBtn" class="switch-account-btn" style="margin-top: 12px;">🔄 Сменить аккаунт</button>
     </div>
 </div>
 
@@ -471,7 +495,7 @@
     import { 
         getFirestore, collection, query, where, orderBy, onSnapshot, 
         addDoc, serverTimestamp, getDocs, doc, updateDoc, setDoc, 
-        getDoc, limit, Timestamp
+        getDoc
     } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
     import { 
         getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
@@ -492,6 +516,11 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
     
+    // ВАЖНО: добавляем параметр для выбора аккаунта при каждом входе
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    });
+    
     let currentUser = null;
     let currentChatUser = null;
     let activeTab = 'dialogs';
@@ -501,10 +530,12 @@
     // DOM элементы
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
+    const switchAccountBtn = document.getElementById('switchAccountBtn');
     const loginButtonWrapper = document.getElementById('loginButtonWrapper');
     const userInfoPanel = document.getElementById('userInfoPanel');
     const userPhoto = document.getElementById('userPhoto');
     const userDisplayName = document.getElementById('userDisplayName');
+    const userEmail = document.getElementById('userEmail');
     const navTabs = document.getElementById('navTabs');
     const dialogsPanel = document.getElementById('dialogsPanel');
     const usersPanel = document.getElementById('usersPanel');
@@ -555,12 +586,10 @@
         });
     }
     
-    // Получение ID диалога
     function getDialogId(user1, user2) {
         return [user1, user2].sort().join('_');
     }
     
-    // Сохранение пользователя в Firestore
     async function saveUserToFirestore(user) {
         const userRef = doc(db, "users", user.email);
         await setDoc(userRef, {
@@ -571,7 +600,6 @@
         }, { merge: true });
     }
     
-    // Загрузка диалогов
     function loadDialogs() {
         if (unsubscribeDialogs) unsubscribeDialogs();
         
@@ -595,8 +623,6 @@
                 const dialog = docSnap.data();
                 const otherUser = dialog.participants.find(p => p !== currentUser.email);
                 const unread = dialog.unread?.[currentUser.email] || 0;
-                
-                // Получаем имя пользователя
                 const otherName = otherUser.split('@')[0];
                 
                 const dialogDiv = document.createElement('div');
@@ -617,7 +643,6 @@
         });
     }
     
-    // Загрузка всех пользователей
     async function loadUsers() {
         const usersRef = collection(db, "users");
         const snapshot = await getDocs(usersRef);
@@ -657,7 +682,6 @@
         });
     }
     
-    // Открыть чат
     async function openChat(userEmail, userName) {
         currentChatUser = userEmail;
         chatUserName.innerText = userName || userEmail.split('@')[0];
@@ -669,7 +693,6 @@
         
         loadMessages();
         
-        // Отметить как прочитанное
         const dialogId = getDialogId(currentUser.email, userEmail);
         const dialogRef = doc(db, "dialogs", dialogId);
         const dialogSnap = await getDoc(dialogRef);
@@ -682,7 +705,6 @@
         }
     }
     
-    // Загрузка сообщений
     function loadMessages() {
         if (unsubscribeMessages) unsubscribeMessages();
         
@@ -721,14 +743,12 @@
         });
     }
     
-    // Отправить сообщение
     async function sendMessage() {
         const text = messageInput.value.trim();
         if (!text && !selectedImageDataURL) return;
         
         const dialogId = getDialogId(currentUser.email, currentChatUser);
         
-        // Создаём или обновляем диалог
         const dialogRef = doc(db, "dialogs", dialogId);
         const dialogSnap = await getDoc(dialogRef);
         
@@ -742,7 +762,6 @@
             unread: unread
         }, { merge: true });
         
-        // Отправляем сообщение
         const messageData = {
             sender: currentUser.email,
             senderName: currentUser.displayName,
@@ -753,14 +772,12 @@
         
         await addDoc(collection(db, "dialogs", dialogId, "messages"), messageData);
         
-        // Очищаем форму
         messageInput.value = "";
         selectedImageDataURL = null;
         chatImagePreview.style.display = 'none';
         chatPreviewImg.src = "";
     }
     
-    // Форматирование времени
     function formatTime(timestamp) {
         if (!timestamp) return "";
         if (timestamp?.toDate) {
@@ -793,15 +810,29 @@
         modal.style.display = "none";
     };
     
-    // Обработка аутентификации
-    loginBtn.onclick = async () => {
+    // Функция входа с принудительным выбором аккаунта
+    async function signInWithAccountSelection() {
         try {
+            // Сначала выходим, чтобы точно показать выбор аккаунта
+            await signOut(auth);
+            // Затем входим с параметром выбора аккаунта
             const result = await signInWithPopup(auth, provider);
             console.log("Успешный вход:", result.user.displayName);
         } catch (error) {
             console.error("Ошибка входа:", error);
-            alert("Ошибка входа: " + error.message);
+            if (error.code !== 'auth/popup-closed-by-user') {
+                alert("Ошибка входа: " + error.message);
+            }
         }
+    }
+    
+    // Обработка входа
+    loginBtn.onclick = signInWithAccountSelection;
+    
+    // Кнопка смены аккаунта
+    switchAccountBtn.onclick = async () => {
+        await signOut(auth);
+        signInWithAccountSelection();
     };
     
     logoutBtn.onclick = async () => {
@@ -823,6 +854,7 @@
             navTabs.style.display = 'flex';
             dialogsPanel.style.display = 'block';
             userDisplayName.innerText = currentUser.displayName;
+            userEmail.innerText = currentUser.email;
             userPhoto.src = currentUser.photoURL;
             
             loadDialogs();
@@ -879,7 +911,6 @@
         }
     });
     
-    // Загрузка изображения
     chatImageInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
@@ -897,7 +928,6 @@
         chatPreviewImg.src = '';
     };
     
-    // Поиск пользователей
     searchUsersInput.addEventListener('input', async (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const usersRef = collection(db, "users");
@@ -939,7 +969,7 @@
         }
     });
     
-    console.log("💬 Система личных сообщений с Google Auth загружена!");
+    console.log("💬 Система личных сообщений с выбором Google аккаунта загружена!");
 </script>
 </body>
 </html>
