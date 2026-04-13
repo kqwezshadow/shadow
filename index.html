@@ -1,182 +1,320 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Где ты?</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            margin: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        h1 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        .my-info {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-            transition: transform 0.2s;
-        }
-        button:hover {
-            transform: scale(0.98);
-        }
-        .home { background: #10b981; }
-        .college { background: #3b82f6; }
-        .coffee { background: #f59e0b; }
-        .pclub { background: #ef4444; }
-        .user-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        .status-icon { font-size: 28px; }
-        .user-name { font-weight: bold; }
-        .user-status { font-size: 12px; color: #666; margin-top: 4px; }
-        .error {
-            background: #fee;
-            color: red;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        .online-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            margin-left: 8px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Где ты?</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #fff 60%, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      margin-bottom: 36px;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+    }
+
+    .my-card {
+      width: 100%;
+      max-width: 480px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+    }
+
+    .my-card h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 16px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.25);
+    }
+
+    .user-info { flex: 1; }
+    .username { font-weight: 600; font-size: 1rem; margin-bottom: 6px; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    .badge-home    { background: rgba(7,202,107,0.2); color: #07CA6B; }
+    .badge-home .dot  { background: #07CA6B; }
+    .badge-college { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .badge-college .dot { background: #3b82f6; }
+    .badge-coffee  { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .badge-coffee .dot { background: #f59e0b; }
+    .badge-pclub   { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .badge-pclub .dot { background: #ef4444; }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
+    .btn:active { transform: scale(0.97); }
+    
+    .btn-home    { background: rgba(7,202,107,0.15); border-color: #07CA6B; color: #07CA6B; }
+    .btn-college { background: rgba(59,130,246,0.15); border-color: #3b82f6; color: #3b82f6; }
+    .btn-coffee  { background: rgba(245,158,11,0.15); border-color: #f59e0b; color: #f59e0b; }
+    .btn-pclub   { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444; }
+
+    .list-card {
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 28px;
+    }
+
+    .list-card h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 18px;
+    }
+
+    .user-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.2s;
+    }
+
+    .user-item:hover { background: rgba(255,255,255,0.1); }
+
+    .user-item .av-sm {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .user-item .name { font-weight: 500; font-size: 0.92rem; flex: 1; }
+
+    .loader {
+      text-align: center;
+      padding: 24px;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.85rem;
+    }
+
+    .realtime-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #07CA6B;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h1>📍 Где ты? <span style="font-size: 12px; background: #10b981; color: white; padding: 2px 8px; border-radius: 20px;">LIVE</span></h1>
-            <p style="color: #666; font-size: 14px;">Поделись своим местоположением</p>
-        </div>
 
-        <div id="myInfo" class="my-info">Загрузка...</div>
-        <div id="error"></div>
+  <h1>📍 Где ты?</h1>
+  <p class="subtitle">Поделись своим местоположением · Realtime</p>
 
-        <div class="buttons">
-            <button class="home" onclick="setStatus('Дома')">🏠 Дома</button>
-            <button class="college" onclick="setStatus('В колледже')">🏫 В колледже</button>
-            <button class="coffee" onclick="setStatus('В кофе')">☕ В кофе</button>
-            <button class="pclub" onclick="setStatus('В ПК клубе')">🎮 В ПК клубе</button>
-        </div>
-
-        <div class="card">
-            <h3 style="margin: 0 0 15px 0;">👥 Команда <span class="online-dot"></span></h3>
-            <div id="users">Загрузка...</div>
-        </div>
+  <div class="glass my-card">
+    <h2>Мой статус</h2>
+    <div class="status-row">
+      <div class="avatar" id="myAvatar">?</div>
+      <div class="user-info">
+        <div class="username" id="myUsername">Загрузка…</div>
+        <span class="status-badge" id="myBadge">
+          <span class="dot"></span>
+          <span id="myStatusLabel">—</span>
+        </span>
+      </div>
     </div>
+    <div class="btn-group">
+      <button class="btn btn-home" onclick="setStatus('Дома')">🏠 Дома</button>
+      <button class="btn btn-college" onclick="setStatus('В колледже')">🏫 В колледже</button>
+      <button class="btn btn-coffee" onclick="setStatus('В кофе')">☕ В кофе</button>
+      <button class="btn btn-pclub" onclick="setStatus('В ПК клубе')">🎮 В ПК клубе</button>
+    </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const SUPABASE_URL = 'https://rncerhgizyjhovbdpqnl.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bWNlcmhnaXp5amhvdmJkcHFubCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU5MTI1NjMyLCJleHAiOjIwNzQ3MDE2MzJ9.K7U-7jOJHExwxM1XmYCQunP-XM5-fOgEp0tRjz7qbA0';
-        const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
-        
-        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        window.setStatus = async (status) => {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ status: status })
-                .eq('id', MY_ID);
-            
-            if (error) {
-                document.getElementById('error').innerHTML = `<div class="error">❌ ${error.message}</div>`;
-                setTimeout(() => document.getElementById('error').innerHTML = '', 3000);
-            } else {
-                loadUsers();
-            }
-        };
-        
-        async function loadUsers() {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('username');
-            
-            if (error) {
-                document.getElementById('users').innerHTML = `<div class="error">❌ ${error.message}</div>`;
-                return;
-            }
-            
-            const me = data.find(u => u.id === MY_ID);
-            if (me) {
-                document.getElementById('myInfo').innerHTML = `👋 <strong>${me.username}</strong><br>📍 Твой статус: <strong style="color: #667eea;">${me.status || 'не задан'}</strong>`;
-            }
-            
-            document.getElementById('users').innerHTML = data.map(u => {
-                let icon = '📍';
-                if (u.status === 'Дома') icon = '🏠';
-                else if (u.status === 'В колледже') icon = '🏫';
-                else if (u.status === 'В кофе') icon = '☕';
-                else if (u.status === 'В ПК клубе') icon = '🎮';
-                
-                return `
-                    <div class="user-item">
-                        <div class="status-icon">${icon}</div>
-                        <div>
-                            <div class="user-name">${u.username} ${u.id === MY_ID ? '<span style="color: #667eea;">(Вы)</span>' : ''}</div>
-                            <div class="user-status">${u.status || 'Не указано'}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        // Realtime
-        supabase
-            .channel('online-status')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => loadUsers())
-            .subscribe();
-        
-        loadUsers();
-    </script>
+  <div class="glass list-card">
+    <h2>👥 Команда</h2>
+    <ul class="user-list" id="userList">
+      <li class="loader">Загрузка…</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <span class="realtime-dot"></span> Realtime синхронизация
+  </div>
+
+<script>
+  // ========== ВАШИ ДАННЫЕ ==========
+  const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bWNlcmhnaXp5amhvdmJkcHFubCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU5MTI1NjMyLCJleHAiOjIwNzQ3MDE2MzJ9.K7U-7jOJHExwxM1XmYCQunP-XM5-fOgEp0tRjz7qbA0';
+  const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
+  // =================================
+
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function initials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  function badgeClass(status) {
+    if (status === 'Дома') return 'badge-home';
+    if (status === 'В колледже') return 'badge-college';
+    if (status === 'В кофе') return 'badge-coffee';
+    if (status === 'В ПК клубе') return 'badge-pclub';
+    return 'badge-home';
+  }
+
+  function getIcon(status) {
+    if (status === 'Дома') return '🏠';
+    if (status === 'В колледже') return '🏫';
+    if (status === 'В кофе') return '☕';
+    if (status === 'В ПК клубе') return '🎮';
+    return '📍';
+  }
+
+  function renderMyCard(p) {
+    document.getElementById('myAvatar').textContent = initials(p.username);
+    document.getElementById('myUsername').textContent = p.username || 'Без имени';
+    const badge = document.getElementById('myBadge');
+    badge.className = 'status-badge ' + badgeClass(p.status);
+    badge.innerHTML = '<span class="dot"></span> ' + getIcon(p.status) + ' ' + (p.status || 'Дома');
+  }
+
+  function renderList(profiles) {
+    const ul = document.getElementById('userList');
+    if (!profiles.length) { ul.innerHTML = '<li class="loader">Нет пользователей</li>'; return; }
+    ul.innerHTML = profiles.map(p => `
+      <li class="user-item">
+        <div class="av-sm">${initials(p.username)}</div>
+        <span class="name">${p.username || 'Без имени'}</span>
+        <span class="status-badge ${badgeClass(p.status)}">
+          <span class="dot"></span>${getIcon(p.status)} ${p.status || 'Дома'}
+        </span>
+      </li>`).join('');
+  }
+
+  async function loadAll() {
+    const { data, error } = await db.from('profiles').select('*');
+    if (error) { console.error(error); return; }
+    renderList(data || []);
+    const me = (data || []).find(p => p.id === MY_ID);
+    if (me) renderMyCard(me);
+  }
+
+  window.setStatus = async function(status) {
+    const { error } = await db.from('profiles').update({ status: status }).eq('id', MY_ID);
+    if (error) console.error('Ошибка обновления:', error);
+  }
+
+  db.channel('profiles-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadAll)
+    .subscribe();
+
+  loadAll();
+</script>
 </body>
 </html>
