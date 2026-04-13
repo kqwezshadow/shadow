@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Где ты?</title>
+    <title>Где ты? - Никита</title>
     <style>
         body {
             font-family: sans-serif;
@@ -93,8 +93,8 @@
 <body>
     <div class="container">
         <div class="card">
-            <h1>📍 Где ты? <span style="font-size: 12px; background: #10b981; color: white; padding: 2px 8px; border-radius: 20px;">LIVE</span></h1>
-            <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">Поделись своим местоположением</p>
+            <h1>📍 Где ты, Никита? <span style="font-size: 12px; background: #10b981; color: white; padding: 2px 8px; border-radius: 20px;">LIVE</span></h1>
+            <p style="color: #666; font-size: 14px;">Поделись своим местоположением</p>
         </div>
 
         <div id="myInfo" class="my-info">Загрузка...</div>
@@ -115,14 +115,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ВАШИ ДАННЫЕ
         const SUPABASE_URL = 'https://rncerhgizyjhovbdpqnl.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bWNlcmhnaXp5amhvdmJkcHFubCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU5MTI1NjMyLCJleHAiOjIwNzQ3MDE2MzJ9.K7U-7jOJHExwxM1XmYCQunP-XM5-fOgEp0tRjz7qbA0';
         const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
         
         const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // Функция смены статуса
         window.setStatus = async (status) => {
             const { error } = await supabase
                 .from('profiles')
@@ -137,64 +135,47 @@
             }
         };
         
-        // Загрузка пользователей
         async function loadUsers() {
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .order('username');
-                
-                if (error) {
-                    document.getElementById('users').innerHTML = `<div class="error">❌ ${error.message}</div>`;
-                    return;
-                }
-                
-                if (!data || data.length === 0) {
-                    document.getElementById('users').innerHTML = '<div style="color: #666;">Нет пользователей</div>';
-                    document.getElementById('myInfo').innerHTML = '⚠️ Добавьте себя в таблицу profiles!';
-                    return;
-                }
-                
-                // Находим текущего пользователя
-                const me = data.find(u => u.id === MY_ID);
-                if (me) {
-                    document.getElementById('myInfo').innerHTML = `👋 <strong>${me.username}</strong><br>📍 Твой статус: <strong style="color: #667eea;">${me.status || 'не задан'}</strong>`;
-                }
-                
-                // Отображаем всех пользователей
-                document.getElementById('users').innerHTML = data.map(u => {
-                    let icon = '📍';
-                    if (u.status === 'Дома') icon = '🏠';
-                    else if (u.status === 'В колледже') icon = '🏫';
-                    else if (u.status === 'В кофе') icon = '☕';
-                    else if (u.status === 'В ПК клубе') icon = '🎮';
-                    
-                    return `
-                        <div class="user-item">
-                            <div class="status-icon">${icon}</div>
-                            <div>
-                                <div class="user-name">${u.username} ${u.id === MY_ID ? '<span style="color: #667eea; font-size: 11px;">(Вы)</span>' : ''}</div>
-                                <div class="user-status">${u.status || 'Не указано'}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-            } catch (err) {
-                document.getElementById('users').innerHTML = `<div class="error">❌ Ошибка: ${err.message}</div>`;
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .order('username');
+            
+            if (error) {
+                document.getElementById('users').innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                return;
             }
+            
+            const me = data.find(u => u.id === MY_ID);
+            if (me) {
+                document.getElementById('myInfo').innerHTML = `👋 <strong>${me.username}</strong><br>📍 Твой статус: <strong style="color: #667eea;">${me.status || 'не задан'}</strong>`;
+            }
+            
+            document.getElementById('users').innerHTML = data.map(u => {
+                let icon = '📍';
+                if (u.status === 'Дома') icon = '🏠';
+                else if (u.status === 'В колледже') icon = '🏫';
+                else if (u.status === 'В кофе') icon = '☕';
+                else if (u.status === 'В ПК клубе') icon = '🎮';
+                
+                return `
+                    <div class="user-item">
+                        <div class="status-icon">${icon}</div>
+                        <div>
+                            <div class="user-name">${u.username} ${u.id === MY_ID ? '<span style="color: #667eea;">(Вы)</span>' : ''}</div>
+                            <div class="user-status">${u.status || 'Не указано'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
         
-        // Realtime подписка
+        // Realtime
         supabase
             .channel('online-status')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-                loadUsers();
-            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => loadUsers())
             .subscribe();
         
-        // Загружаем при старте
         loadUsers();
     </script>
 </body>
