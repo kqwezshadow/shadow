@@ -1,352 +1,335 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Где ты?</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-      font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
     }
 
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #333;
       margin-bottom: 8px;
-      background: linear-gradient(90deg, #fff 60%, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
-    .subtitle {
-      color: rgba(255,255,255,0.5);
-      font-size: 0.9rem;
-      margin-bottom: 36px;
+    .header p {
+      color: #666;
+      font-size: 14px;
     }
 
-    .glass {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+    .live-badge {
+      display: inline-block;
+      background: #10b981;
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
       border-radius: 20px;
+      margin-left: 8px;
+      vertical-align: middle;
     }
 
+    /* Моя карточка */
     .my-card {
-      width: 100%;
-      max-width: 480px;
-      padding: 28px 32px;
-      margin-bottom: 32px;
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
 
-    .my-card h2 {
-      font-size: 0.75rem;
+    .my-card h3 {
+      color: #888;
+      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: rgba(255,255,255,0.45);
+      letter-spacing: 1px;
       margin-bottom: 16px;
     }
 
-    .status-row {
+    .my-info {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 15px;
+      margin-bottom: 20px;
     }
 
     .avatar {
-      width: 48px;
-      height: 48px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       border-radius: 50%;
-      background: linear-gradient(135deg, #7c3aed, #3b82f6);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-      border: 2px solid rgba(255,255,255,0.25);
+      font-size: 24px;
+      color: white;
     }
 
-    .user-info { flex: 1; }
-    .username { font-weight: 600; font-size: 1rem; margin-bottom: 6px; }
+    .my-details {
+      flex: 1;
+    }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .my-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .my-status {
+      display: inline-block;
       padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 500;
+      border-radius: 20px;
+      font-size: 13px;
+      margin-top: 6px;
     }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
-    }
-
-    .badge-home    { background: rgba(7,202,107,0.2); color: #07CA6B; }
-    .badge-home .dot  { background: #07CA6B; }
-    .badge-college { background: rgba(59,130,246,0.2); color: #3b82f6; }
-    .badge-college .dot { background: #3b82f6; }
-    .badge-coffee  { background: rgba(245,158,11,0.2); color: #f59e0b; }
-    .badge-coffee .dot { background: #f59e0b; }
-    .badge-pclub   { background: rgba(239,68,68,0.2); color: #ef4444; }
-    .badge-pclub .dot { background: #ef4444; }
-
-    .btn-group {
+    /* Кнопки статусов */
+    .status-buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-top: 20px;
     }
 
-    .btn {
-      padding: 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.07);
-      color: #fff;
-      font-size: 0.9rem;
+    .status-btn {
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
-    .btn:active { transform: scale(0.97); }
-    
-    .btn-home    { background: rgba(7,202,107,0.15); border-color: #07CA6B; color: #07CA6B; }
-    .btn-college { background: rgba(59,130,246,0.15); border-color: #3b82f6; color: #3b82f6; }
-    .btn-coffee  { background: rgba(245,158,11,0.15); border-color: #f59e0b; color: #f59e0b; }
-    .btn-pclub   { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444; }
-
-    .list-card {
-      width: 100%;
-      max-width: 480px;
-      padding: 24px 28px;
+    .status-btn:hover {
+      transform: scale(0.97);
     }
 
-    .list-card h2 {
-      font-size: 0.75rem;
+    .btn-home { background: #d1fae5; color: #065f46; }
+    .btn-college { background: #dbeafe; color: #1e40af; }
+    .btn-coffee { background: #fed7aa; color: #92400e; }
+    .btn-pclub { background: #fee2e2; color: #991b1b; }
+
+    /* Список команды */
+    .team-card {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .team-card h3 {
+      color: #888;
+      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 18px;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
     }
 
-    .user-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .user-list {
+      list-style: none;
+    }
 
     .user-item {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      transition: background 0.2s;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
     }
 
-    .user-item:hover { background: rgba(255,255,255,0.1); }
+    .user-item:last-child {
+      border-bottom: none;
+    }
 
-    .user-item .av-sm {
-      width: 38px;
-      height: 38px;
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      background: #f0f0f0;
       border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
-      font-weight: 600;
-      flex-shrink: 0;
+      font-size: 18px;
     }
 
-    .user-item .name { font-weight: 500; font-size: 0.92rem; flex: 1; }
+    .user-name {
+      flex: 1;
+      font-weight: 500;
+      color: #333;
+    }
 
-    .loader {
+    .user-status {
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .status-home { background: #d1fae5; color: #065f46; }
+    .status-college { background: #dbeafe; color: #1e40af; }
+    .status-coffee { background: #fed7aa; color: #92400e; }
+    .status-pclub { background: #fee2e2; color: #991b1b; }
+
+    .error-msg {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 12px;
+      border-radius: 16px;
+      margin-bottom: 20px;
       text-align: center;
-      padding: 24px;
-      color: rgba(255,255,255,0.4);
-      font-size: 0.85rem;
-    }
-
-    .realtime-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #07CA6B;
-      display: inline-block;
-      margin-right: 6px;
-      animation: pulse 2s infinite;
+      font-size: 14px;
     }
 
     .footer {
-      margin-top: 24px;
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.3);
-      display: flex;
-      align-items: center;
-    }
-
-    .error-msg {
-      background: rgba(239,68,68,0.2);
-      border: 1px solid #ef4444;
-      color: #ef4444;
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      font-size: 12px;
       text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      color: #999;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <div class="header">
+      <h1>📍 Где ты? <span class="live-badge">LIVE</span></h1>
+      <p>Поделись своим местоположением</p>
+    </div>
 
-  <h1>📍 Где ты?</h1>
-  <p class="subtitle">Поделись своим местоположением · Realtime</p>
+    <div id="errorMsg"></div>
 
-  <div id="errorMsg"></div>
-
-  <div class="glass my-card">
-    <h2>Мой статус</h2>
-    <div class="status-row">
-      <div class="avatar" id="myAvatar">?</div>
-      <div class="user-info">
-        <div class="username" id="myUsername">Загрузка…</div>
-        <span class="status-badge" id="myBadge">
-          <span class="dot"></span>
-          <span id="myStatusLabel">—</span>
-        </span>
+    <div class="my-card">
+      <h3>⭐ Мой статус</h3>
+      <div class="my-info">
+        <div class="avatar" id="myAvatar">👤</div>
+        <div class="my-details">
+          <div class="my-name" id="myName">Загрузка...</div>
+          <span class="my-status" id="myStatus">—</span>
+        </div>
+      </div>
+      <div class="status-buttons">
+        <button class="status-btn btn-home" onclick="setStatus('Дома')">🏠 Дома</button>
+        <button class="status-btn btn-college" onclick="setStatus('В колледже')">🏫 В колледже</button>
+        <button class="status-btn btn-coffee" onclick="setStatus('В кофе')">☕ В кофе</button>
+        <button class="status-btn btn-pclub" onclick="setStatus('В ПК клубе')">🎮 В ПК клубе</button>
       </div>
     </div>
-    <div class="btn-group">
-      <button class="btn btn-home" onclick="setStatus('Дома')">🏠 Дома</button>
-      <button class="btn btn-college" onclick="setStatus('В колледже')">🏫 В колледже</button>
-      <button class="btn btn-coffee" onclick="setStatus('В кофе')">☕ В кофе</button>
-      <button class="btn btn-pclub" onclick="setStatus('В ПК клубе')">🎮 В ПК клубе</button>
+
+    <div class="team-card">
+      <h3>👥 Команда</h3>
+      <ul class="user-list" id="userList">
+        <li style="padding: 20px; text-align: center; color: #999;">Загрузка...</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      🔄 Обновляется автоматически
     </div>
   </div>
 
-  <div class="glass list-card">
-    <h2>👥 Команда</h2>
-    <ul class="user-list" id="userList">
-      <li class="loader">Загрузка…</li>
-    </ul>
-  </div>
+  <script>
+    // ВАШИ ДАННЫЕ
+    const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
+    const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
 
-  <div class="footer">
-    <span class="realtime-dot"></span> Realtime синхронизация
-  </div>
+    const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<script>
-  // ========== ВАШИ ДАННЫЕ ==========
-  const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
-  const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
-  // =================================
-
-  const { createClient } = supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  function showError(msg) {
-    const errorDiv = document.getElementById('errorMsg');
-    errorDiv.innerHTML = `<div class="error-msg">❌ ${msg}</div>`;
-    setTimeout(() => errorDiv.innerHTML = '', 5000);
-  }
-
-  function initials(name) {
-    if (!name) return '?';
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  function badgeClass(status) {
-    if (status === 'Дома') return 'badge-home';
-    if (status === 'В колледже') return 'badge-college';
-    if (status === 'В кофе') return 'badge-coffee';
-    if (status === 'В ПК клубе') return 'badge-pclub';
-    return 'badge-home';
-  }
-
-  function getIcon(status) {
-    if (status === 'Дома') return '🏠';
-    if (status === 'В колледже') return '🏫';
-    if (status === 'В кофе') return '☕';
-    if (status === 'В ПК клубе') return '🎮';
-    return '📍';
-  }
-
-  function renderMyCard(p) {
-    document.getElementById('myAvatar').textContent = initials(p.username);
-    document.getElementById('myUsername').textContent = p.username || 'Без имени';
-    const badge = document.getElementById('myBadge');
-    badge.className = 'status-badge ' + badgeClass(p.status);
-    badge.innerHTML = '<span class="dot"></span> ' + getIcon(p.status) + ' ' + (p.status || 'Дома');
-  }
-
-  function renderList(profiles) {
-    const ul = document.getElementById('userList');
-    if (!profiles.length) { ul.innerHTML = '<li class="loader">Нет пользователей</li>'; return; }
-    ul.innerHTML = profiles.map(p => `
-      <li class="user-item">
-        <div class="av-sm">${initials(p.username)}</div>
-        <span class="name">${p.username || 'Без имени'}</span>
-        <span class="status-badge ${badgeClass(p.status)}">
-          <span class="dot"></span>${getIcon(p.status)} ${p.status || 'Дома'}
-        </span>
-      </li>`).join('');
-  }
-
-  async function loadAll() {
-    const { data, error } = await db.from('profiles').select('*');
-    if (error) { 
-      console.error(error);
-      showError('Ошибка загрузки: ' + error.message);
-      return; 
+    function getStatusStyle(status) {
+      if (status === 'Дома') return 'status-home';
+      if (status === 'В колледже') return 'status-college';
+      if (status === 'В кофе') return 'status-coffee';
+      if (status === 'В ПК клубе') return 'status-pclub';
+      return 'status-home';
     }
-    renderList(data || []);
-    const me = (data || []).find(p => p.id === MY_ID);
-    if (me) renderMyCard(me);
-  }
 
-  window.setStatus = async function(status) {
-    const { error } = await db.from('profiles').update({ status: status }).eq('id', MY_ID);
-    if (error) {
-      console.error(error);
-      showError('Ошибка обновления: ' + error.message);
+    function getIcon(status) {
+      if (status === 'Дома') return '🏠';
+      if (status === 'В колледже') return '🏫';
+      if (status === 'В кофе') return '☕';
+      if (status === 'В ПК клубе') return '🎮';
+      return '📍';
     }
-  }
 
-  // Подписка на realtime
-  db.channel('profiles-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadAll)
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ Realtime подключен');
-      } else if (status === 'CHANNEL_ERROR') {
-        showError('Realtime недоступен, но данные загружаются');
+    function showError(msg) {
+      const div = document.getElementById('errorMsg');
+      div.innerHTML = `<div class="error-msg">❌ ${msg}</div>`;
+      setTimeout(() => div.innerHTML = '', 4000);
+    }
+
+    async function loadUsers() {
+      const { data, error } = await supabase.from('profiles').select('*');
+      if (error) {
+        showError(error.message);
+        return;
       }
-    });
 
-  loadAll();
-</script>
+      // Мой профиль
+      const me = data.find(u => u.id === MY_ID);
+      if (me) {
+        document.getElementById('myName').textContent = me.username || 'Пользователь';
+        document.getElementById('myStatus').textContent = getIcon(me.status) + ' ' + (me.status || 'Дома');
+        document.getElementById('myStatus').className = 'my-status ' + getStatusStyle(me.status);
+        document.getElementById('myAvatar').textContent = (me.username || '?')[0].toUpperCase();
+      }
+
+      // Список всех
+      const list = document.getElementById('userList');
+      if (data.length === 0) {
+        list.innerHTML = '<li style="padding: 20px; text-align: center; color: #999;">Нет пользователей</li>';
+        return;
+      }
+
+      list.innerHTML = data.map(user => `
+        <li class="user-item">
+          <div class="user-avatar">${(user.username || '?')[0].toUpperCase()}</div>
+          <span class="user-name">${user.username || 'Без имени'} ${user.id === MY_ID ? '<span style="color: #667eea; font-size: 11px;">(Вы)</span>' : ''}</span>
+          <span class="user-status ${getStatusStyle(user.status)}">${getIcon(user.status)} ${user.status || 'Дома'}</span>
+        </li>
+      `).join('');
+    }
+
+    window.setStatus = async function(status) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: status })
+        .eq('id', MY_ID);
+      
+      if (error) {
+        showError('Ошибка: ' + error.message);
+      }
+    }
+
+    // Realtime подписка
+    supabase
+      .channel('changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => loadUsers())
+      .subscribe();
+
+    loadUsers();
+  </script>
 </body>
 </html>
