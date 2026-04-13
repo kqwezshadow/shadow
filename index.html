@@ -113,96 +113,89 @@
         </div>
     </div>
 
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-        // ВАШИ ДАННЫЕ (исправлено!)
-        const URL = 'https://rncerhgizyjhovbdpqnl.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bWNlcmhnaXp5amhvdmJkcHFubCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU5MTI1NjMyLCJleHAiOjIwNzQ3MDE2MzJ9.K7U-7jOJHExwxM1XmYCQunP-XM5-fOgEp0tRjz7qbA0';
-        const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';  // Ваш новый ID
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ВАШИ ДАННЫЕ
+        const SUPABASE_URL = 'https://rncerhgizyjhovbdpqnl.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bWNlcmhnaXp5amhvdmJkcHFubCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU5MTI1NjMyLCJleHAiOjIwNzQ3MDE2MzJ9.K7U-7jOJHExwxM1XmYCQunP-XM5-fOgEp0tRjz7qbA0';
+        const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
         
-        const supabase = createClient(URL, KEY);
-
+        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Функция смены статуса
         window.setStatus = async (status) => {
-            const btn = event.target;
-            btn.style.opacity = '0.7';
-            
             const { error } = await supabase
                 .from('profiles')
                 .update({ status: status })
                 .eq('id', MY_ID);
             
-            btn.style.opacity = '1';
-            
             if (error) {
-                document.getElementById('error').innerHTML = `<div class="error">❌ Ошибка: ${error.message}</div>`;
+                document.getElementById('error').innerHTML = `<div class="error">❌ ${error.message}</div>`;
                 setTimeout(() => document.getElementById('error').innerHTML = '', 3000);
             } else {
                 loadUsers();
             }
         };
-
+        
+        // Загрузка пользователей
         async function loadUsers() {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('username');
-            
-            if (error) {
-                document.getElementById('users').innerHTML = `<div class="error">❌ ${error.message}</div>`;
-                return;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .order('username');
+                
+                if (error) {
+                    document.getElementById('users').innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                    return;
+                }
+                
+                if (!data || data.length === 0) {
+                    document.getElementById('users').innerHTML = '<div style="color: #666;">Нет пользователей</div>';
+                    document.getElementById('myInfo').innerHTML = '⚠️ Добавьте себя в таблицу profiles!';
+                    return;
+                }
+                
+                // Находим текущего пользователя
+                const me = data.find(u => u.id === MY_ID);
+                if (me) {
+                    document.getElementById('myInfo').innerHTML = `👋 <strong>${me.username}</strong><br>📍 Твой статус: <strong style="color: #667eea;">${me.status || 'не задан'}</strong>`;
+                }
+                
+                // Отображаем всех пользователей
+                document.getElementById('users').innerHTML = data.map(u => {
+                    let icon = '📍';
+                    if (u.status === 'Дома') icon = '🏠';
+                    else if (u.status === 'В колледже') icon = '🏫';
+                    else if (u.status === 'В кофе') icon = '☕';
+                    else if (u.status === 'В ПК клубе') icon = '🎮';
+                    
+                    return `
+                        <div class="user-item">
+                            <div class="status-icon">${icon}</div>
+                            <div>
+                                <div class="user-name">${u.username} ${u.id === MY_ID ? '<span style="color: #667eea; font-size: 11px;">(Вы)</span>' : ''}</div>
+                                <div class="user-status">${u.status || 'Не указано'}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (err) {
+                document.getElementById('users').innerHTML = `<div class="error">❌ Ошибка: ${err.message}</div>`;
             }
-            
-            if (!data || data.length === 0) {
-                document.getElementById('users').innerHTML = '<div style="color: #666;">Нет пользователей. Добавьте себя в таблицу!</div>';
-                return;
-            }
-            
-            const me = data.find(u => u.id === MY_ID);
-            if (me) {
-                document.getElementById('myInfo').innerHTML = `👋 <strong>${me.username}</strong><br>📍 Твой статус: <strong style="color: #667eea;">${me.status || 'не задан'}</strong>`;
-            } else {
-                document.getElementById('myInfo').innerHTML = `⚠️ Тебя нет в таблице!<br><small>Добавь через Table Editor с ID: ${MY_ID}</small>`;
-            }
-            
-            document.getElementById('users').innerHTML = data.map(u => `
-                <div class="user-item">
-                    <div class="status-icon">${getIcon(u.status)}</div>
-                    <div>
-                        <div class="user-name">${escapeHtml(u.username)} ${u.id === MY_ID ? '<span style="color: #667eea; font-size: 11px;">(Вы)</span>' : ''}</div>
-                        <div class="user-status">${u.status || 'Не указано'}</div>
-                    </div>
-                </div>
-            `).join('');
         }
-        
-        function getIcon(status) {
-            if (status === 'Дома') return '🏠';
-            if (status === 'В колледже') return '🏫';
-            if (status === 'В кофе') return '☕';
-            if (status === 'В ПК клубе') return '🎮';
-            return '📍';
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
-        // Загружаем пользователей
-        loadUsers();
         
         // Realtime подписка
-        const channel = supabase.channel('online-status')
+        supabase
+            .channel('online-status')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
                 loadUsers();
             })
             .subscribe();
+        
+        // Загружаем при старте
+        loadUsers();
     </script>
 </body>
 </html>
