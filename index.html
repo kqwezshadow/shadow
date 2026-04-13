@@ -38,7 +38,6 @@
     .glass {
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
       border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 20px;
     }
@@ -207,12 +206,25 @@
       display: flex;
       align-items: center;
     }
+
+    .error-msg {
+      background: rgba(239,68,68,0.2);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
   <h1>📍 Где ты?</h1>
   <p class="subtitle">Поделись своим местоположением · Realtime</p>
+
+  <div id="errorMsg"></div>
 
   <div class="glass my-card">
     <h2>Мой статус</h2>
@@ -248,12 +260,18 @@
 <script>
   // ========== ВАШИ ДАННЫЕ ==========
   const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bWNlcmhnaXp5amhvdmJkcHFubCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzU5MTI1NjMyLCJleHAiOjIwNzQ3MDE2MzJ9.K7U-7jOJHExwxM1XmYCQunP-XM5-fOgEp0tRjz7qbA0';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
   const MY_ID = '64e0c828-9e67-45db-ab5a-73bb67da5aba';
   // =================================
 
   const { createClient } = supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function showError(msg) {
+    const errorDiv = document.getElementById('errorMsg');
+    errorDiv.innerHTML = `<div class="error-msg">❌ ${msg}</div>`;
+    setTimeout(() => errorDiv.innerHTML = '', 5000);
+  }
 
   function initials(name) {
     if (!name) return '?';
@@ -299,7 +317,11 @@
 
   async function loadAll() {
     const { data, error } = await db.from('profiles').select('*');
-    if (error) { console.error(error); return; }
+    if (error) { 
+      console.error(error);
+      showError('Ошибка загрузки: ' + error.message);
+      return; 
+    }
     renderList(data || []);
     const me = (data || []).find(p => p.id === MY_ID);
     if (me) renderMyCard(me);
@@ -307,12 +329,22 @@
 
   window.setStatus = async function(status) {
     const { error } = await db.from('profiles').update({ status: status }).eq('id', MY_ID);
-    if (error) console.error('Ошибка обновления:', error);
+    if (error) {
+      console.error(error);
+      showError('Ошибка обновления: ' + error.message);
+    }
   }
 
+  // Подписка на realtime
   db.channel('profiles-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadAll)
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Realtime подключен');
+      } else if (status === 'CHANNEL_ERROR') {
+        showError('Realtime недоступен, но данные загружаются');
+      }
+    });
 
   loadAll();
 </script>
