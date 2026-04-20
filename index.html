@@ -5,12 +5,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <h1>Тест входа через Google</h1>
     <button id="loginBtn">Войти через Google</button>
-    
+    <div id="user"></div>
+
     <script>
         const supabase = createClient(
             'https://xwmckxrikcfalulwkhii.supabase.co',
-            'ВАШ_ANON_KEY_ИЗ_SUPABASE'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNTE2NTEsImV4cCI6MjA2MDcyNzY1MX0.6QBfsXiVl2ySaGAeL2AeV4FJ_DjHohTMCiK2j3CQkP4'
         );
 
         document.getElementById('loginBtn').onclick = async () => {
@@ -19,6 +21,13 @@
             });
             if (error) alert('Ошибка: ' + error.message);
         };
+
+        // Проверка текущего пользователя
+        supabase.auth.getUser().then(({ data }) => {
+            if (data.user) {
+                document.getElementById('user').innerHTML = `<p>Вы вошли как: ${data.user.email}</p>`;
+            }
+        });
     </script>
 </body>
 </html>
