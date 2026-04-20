@@ -10,24 +10,40 @@
     <div id="user"></div>
 
     <script>
-        const supabase = createClient(
-            'https://xwmckxrikcfalulwkhii.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNTE2NTEsImV4cCI6MjA2MDcyNzY1MX0.6QBfsXiVl2ySaGAeL2AeV4FJ_DjHohTMCiK2j3CQkP4'
-        );
+        // ВАШИ ДАННЫЕ (правильно создаем клиент)
+        const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
+        
+        // СОЗДАЕМ КЛИЕНТ SUPABASE
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // КНОПКА ВХОДА
         document.getElementById('loginBtn').onclick = async () => {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google'
-            });
-            if (error) alert('Ошибка: ' + error.message);
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google'
+                });
+                
+                if (error) {
+                    console.error('Ошибка:', error);
+                    alert('Ошибка: ' + error.message);
+                } else {
+                    console.log('Успех, перенаправление...', data);
+                }
+            } catch (err) {
+                console.error('Исключение:', err);
+                alert('Ошибка: ' + err.message);
+            }
         };
 
-        // Проверка текущего пользователя
-        supabase.auth.getUser().then(({ data }) => {
-            if (data.user) {
-                document.getElementById('user').innerHTML = `<p>Вы вошли как: ${data.user.email}</p>`;
+        // ПРОВЕРКА ПОЛЬЗОВАТЕЛЯ
+        async function checkUser() {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (user) {
+                document.getElementById('user').innerHTML = `<p>✅ Вы вошли как: ${user.email}</p>`;
             }
-        });
+        }
+        checkUser();
     </script>
 </body>
 </html>
