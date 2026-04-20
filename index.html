@@ -10,17 +10,17 @@
     <div id="user"></div>
 
     <script>
-        // ВАШИ ДАННЫЕ (правильно создаем клиент)
+        // ВАШИ ДАННЫЕ
         const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
-        // СОЗДАЕМ КЛИЕНТ SUPABASE
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // СОЗДАЕМ КЛИЕНТ (без const, т.к. используем window)
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // КНОПКА ВХОДА
         document.getElementById('loginBtn').onclick = async () => {
             try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
                     provider: 'google'
                 });
                 
@@ -38,7 +38,7 @@
 
         // ПРОВЕРКА ПОЛЬЗОВАТЕЛЯ
         async function checkUser() {
-            const { data: { user }, error } = await supabase.auth.getUser();
+            const { data: { user }, error } = await window.supabaseClient.auth.getUser();
             if (user) {
                 document.getElementById('user').innerHTML = `<p>✅ Вы вошли как: ${user.email}</p>`;
             }
