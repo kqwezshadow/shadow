@@ -14,15 +14,15 @@
         const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
-        // Создаем клиент (без const, чтобы избежать конфликта)
-        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Создаем клиент
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Кнопка входа
+        // Функция входа
         document.getElementById('loginBtn').onclick = async () => {
-            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+            const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: 'https://kqwezshadow.github.io/shadow'
+                    redirectTo: window.location.origin + window.location.pathname
                 }
             });
             
@@ -32,13 +32,29 @@
             }
         };
         
-        // Проверяем пользователя
+        // Функция выхода
+        async function logout() {
+            await supabase.auth.signOut();
+            location.reload();
+        }
+        
+        // Проверяем сессию при загрузке страницы
         async function checkUser() {
-            const { data: { user }, error } = await window.supabaseClient.auth.getUser();
-            if (user) {
-                document.getElementById('user').innerHTML = `<p>✅ Вы вошли как: ${user.email}</p>`;
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (session) {
+                const user = session.user;
+                document.getElementById('user').innerHTML = `
+                    <p>✅ Вы вошли как: ${user.email}</p>
+                    <button id="logoutBtn">Выйти</button>
+                `;
+                document.getElementById('logoutBtn').onclick = logout;
+            } else {
+                document.getElementById('user').innerHTML = '<p>❌ Вы не вошли</p>';
             }
         }
+        
+        // Запускаем проверку
         checkUser();
     </script>
 </body>
