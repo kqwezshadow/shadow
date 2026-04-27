@@ -10,19 +10,19 @@
     <div id="result"></div>
 
     <script>
-        // ИСПОЛЬЗУЕМ ДРУГОЕ ИМЯ ПЕРЕМЕННОЙ
-        const sb = window.supabase.createClient(
+        // ВАЖНО: используем ДРУГОЕ имя
+        const client = window.supabase.createClient(
             'https://xwmckxrikcfalulwkhii.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
         );
 
-        document.getElementById('btn').onclick = function() {
-            sb.auth.signInWithOAuth({ provider: 'google' });
+        document.getElementById('btn').onclick = () => {
+            client.auth.signInWithOAuth({ provider: 'google' });
         };
 
-        sb.auth.getSession().then(({ data }) => {
+        client.auth.getSession().then(({ data }) => {
             if (data.session) {
-                document.getElementById('result').innerHTML = '✅ Вошел: ' + data.session.user.email;
+                document.getElementById('result').innerHTML = '✅ Вы вошли как: ' + data.session.user.email;
             }
         });
     </script>
