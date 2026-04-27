@@ -13,9 +13,40 @@
         const supabaseUrl = 'https://xwmckxrikcfalulwkhii.supabase.co';
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
-        // ИСПРАВЛЕНО: window.supabase
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // ВАЖНО: добавляем настройки для сохранения сессии
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+            auth: {
+                persistSession: true,
+                storage: window.localStorage,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
+        });
 
+        // Обработка URL с токеном после входа
+        const handleHashParams = async () => {
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token')) {
+                // Извлекаем токен из URL
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+                
+                if (accessToken) {
+                    // Устанавливаем сессию
+                    const { data, error } = await supabaseClient.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                    if (!error) {
+                        // Очищаем URL от токена
+                        window.location.href = window.location.pathname;
+                    }
+                }
+            }
+        };
+
+        // Кнопка входа
         document.getElementById('loginBtn').onclick = () => {
             supabaseClient.auth.signInWithOAuth({ 
                 provider: 'google',
@@ -25,11 +56,27 @@
             });
         };
 
-        supabaseClient.auth.getSession().then(({ data }) => {
-            if (data.session) {
-                document.getElementById('userInfo').innerHTML = `<p>✅ Ты вошел как: ${data.session.user.email}</p>`;
+        // Проверка сессии
+        const checkUser = async () => {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (session) {
+                document.getElementById('userInfo').innerHTML = `
+                    <p>✅ Ты вошел как: ${session.user.email}</p>
+                    <button id="logoutBtn">Выйти</button>
+                `;
+                document.getElementById('logoutBtn').onclick = async () => {
+                    await supabaseClient.auth.signOut();
+                    location.reload();
+                };
+                document.getElementById('loginBtn').style.display = 'none';
+            } else {
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                await handleHashParams();
             }
-        });
+        };
+        
+        checkUser();
     </script>
 </body>
 </html>
