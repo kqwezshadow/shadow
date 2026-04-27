@@ -10,63 +10,24 @@
     <div id="userInfo"></div>
 
     <script>
+        // Данные твоего Supabase проекта
         const supabaseUrl = 'https://xwmckxrikcfalulwkhii.supabase.co';
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
+        // Создаем клиент
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-        // Обработка возврата после OAuth
-        async function handleOAuthRedirect() {
-            // Получаем hash параметры (для implicit flow)
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
-            
-            if (accessToken) {
-                // Сохраняем сессию
-                const { data, error } = await supabaseClient.auth.setSession({
-                    access_token: accessToken,
-                    refresh_token: refreshToken
-                });
-                
-                if (!error && data.session) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    displayUserInfo(data.session);
-                }
-            }
-            
-            // Проверяем существующую сессию
-            const { data } = await supabaseClient.auth.getSession();
-            if (data.session) {
-                displayUserInfo(data.session);
-            }
-        }
-        
-        function displayUserInfo(session) {
-            document.getElementById('userInfo').innerHTML = `
-                <p>✅ Ты вошел как: ${session.user.email}</p>
-                <button id="logoutBtn">Выйти</button>
-            `;
-            document.getElementById('logoutBtn').onclick = () => {
-                supabaseClient.auth.signOut();
-                location.reload();
-            };
-        }
-        
-        // Кнопка входа
-        document.getElementById('loginBtn').onclick = async () => {
-            const { data, error } = await supabaseClient.auth.signInWithOAuth({ 
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + window.location.pathname
-                }
-            });
-            
-            if (error) console.error('Ошибка входа:', error);
+        // Логика кнопки входа
+        document.getElementById('loginBtn').onclick = () => {
+            supabaseClient.auth.signInWithOAuth({ provider: 'google' });
         };
-        
-        // Запускаем обработку
-        handleOAuthRedirect();
+
+        // Проверяем, не вошел ли пользователь уже
+        supabaseClient.auth.getSession().then(({ data }) => {
+            if (data.session) {
+                document.getElementById('userInfo').innerHTML = `<p>✅ Ты вошел как: ${data.session.user.email}</p>`;
+            }
+        });
     </script>
 </body>
 </html>
