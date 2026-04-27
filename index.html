@@ -1,61 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Вход через Google</title>
+    <title>Google Login</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <h1>Тест входа через Google</h1>
-    <button id="loginBtn">Войти через Google</button>
-    <div id="user"></div>
+    <h1>Вход через Google</h1>
+    <button id="btn">Войти</button>
+    <div id="result"></div>
 
     <script>
-        // Данные Supabase
-        const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
-        
-        // Создаем клиент
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Функция входа
-        document.getElementById('loginBtn').onclick = async () => {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + window.location.pathname
-                }
-            });
-            
-            if (error) {
-                console.error('Ошибка:', error);
-                alert('Ошибка: ' + error.message);
-            }
+        // ИСПОЛЬЗУЕМ ДРУГОЕ ИМЯ ПЕРЕМЕННОЙ
+        const sb = window.supabase.createClient(
+            'https://xwmckxrikcfalulwkhii.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
+        );
+
+        document.getElementById('btn').onclick = function() {
+            sb.auth.signInWithOAuth({ provider: 'google' });
         };
-        
-        // Функция выхода
-        async function logout() {
-            await supabase.auth.signOut();
-            location.reload();
-        }
-        
-        // Проверяем сессию при загрузке страницы
-        async function checkUser() {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            
-            if (session) {
-                const user = session.user;
-                document.getElementById('user').innerHTML = `
-                    <p>✅ Вы вошли как: ${user.email}</p>
-                    <button id="logoutBtn">Выйти</button>
-                `;
-                document.getElementById('logoutBtn').onclick = logout;
-            } else {
-                document.getElementById('user').innerHTML = '<p>❌ Вы не вошли</p>';
+
+        sb.auth.getSession().then(({ data }) => {
+            if (data.session) {
+                document.getElementById('result').innerHTML = '✅ Вошел: ' + data.session.user.email;
             }
-        }
-        
-        // Запускаем проверку
-        checkUser();
+        });
     </script>
 </body>
 </html>
