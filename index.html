@@ -86,8 +86,8 @@
         const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
-        // Создаем клиент Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ГЛАВНОЕ: используем ДРУГОЕ имя переменной (НЕ supabase)
+        const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // Получаем элементы
         const loginBtn = document.getElementById('loginBtn');
@@ -97,7 +97,7 @@
         // Функция входа через Google
         async function signInWithGoogle() {
             try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { data, error } = await sbClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
                         redirectTo: window.location.origin + window.location.pathname
@@ -105,7 +105,6 @@
                 });
                 
                 if (error) throw error;
-                // Перенаправление произойдет автоматически
             } catch (error) {
                 console.error('Ошибка входа:', error);
                 errorMsgDiv.textContent = 'Ошибка входа: ' + error.message;
@@ -115,7 +114,7 @@
         // Функция выхода
         async function signOut() {
             try {
-                const { error } = await supabase.auth.signOut();
+                const { error } = await sbClient.auth.signOut();
                 if (error) throw error;
                 location.reload();
             } catch (error) {
@@ -142,7 +141,7 @@
         // Проверяем текущую сессию при загрузке страницы
         async function checkSession() {
             try {
-                const { data: { session }, error } = await supabase.auth.getSession();
+                const { data: { session }, error } = await sbClient.auth.getSession();
                 
                 if (error) throw error;
                 
