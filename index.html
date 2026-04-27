@@ -1,35 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Вход через Google</title>
+    <title>Google Login</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <h1>Вход через Google</h1>
-    <button id="loginBtn">Войти через Google</button>
-    <div id="userInfo"></div>
-
+    <button id="btn">Войти</button>
+    <div id="res"></div>
     <script>
-        const supabaseUrl = 'https://xwmckxrikcfalulwkhii.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
-        
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
-        // ГЛАВНОЕ: БЕЗ redirectTo!
-        document.getElementById('loginBtn').onclick = () => {
-            supabaseClient.auth.signInWithOAuth({ 
-                provider: 'google'
-            });
-        };
-
-        const checkUser = async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                document.getElementById('userInfo').innerHTML = `<p>✅ Ты вошел как: ${session.user.email}</p>`;
-                document.getElementById('loginBtn').style.display = 'none';
-            }
-        };
-        checkUser();
+        const sb = window.supabase.createClient(
+            'https://xwmckxrikcfalulwkhii.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
+        );
+        document.getElementById('btn').onclick = () => sb.auth.signInWithOAuth({ provider: 'google' });
+        sb.auth.getSession().then(({data}) => { if(data.session) document.getElementById('res').innerHTML = '✅ Привет, ' + data.session.user.email; });
     </script>
 </body>
 </html>
