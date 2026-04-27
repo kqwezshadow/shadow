@@ -10,19 +10,21 @@
     <div id="userInfo"></div>
 
     <script>
-        // Данные твоего Supabase проекта
         const supabaseUrl = 'https://xwmckxrikcfalulwkhii.supabase.co';
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
-        // Создаем клиент
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // ИСПРАВЛЕНО: window.supabase
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-        // Логика кнопки входа
         document.getElementById('loginBtn').onclick = () => {
-            supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+            supabaseClient.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: {
+                    redirectTo: 'https://kqwezshadow.github.io/shadow/'
+                }
+            });
         };
 
-        // Проверяем, не вошел ли пользователь уже
         supabaseClient.auth.getSession().then(({ data }) => {
             if (data.session) {
                 document.getElementById('userInfo').innerHTML = `<p>✅ Ты вошел как: ${data.session.user.email}</p>`;
