@@ -5,8 +5,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <h1>Вход через Google</h1>
-    <button id="btn">Войти</button>
+    <div id="auth-container">
+        <h1 id="title">Вход через Google</h1>
+        <button id="btn">Войти</button>
+    </div>
     <div id="res"></div>
     <script>
         const sb = window.supabase.createClient(
@@ -14,6 +16,7 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
         );
         
+        const authContainer = document.getElementById('auth-container');
         const btn = document.getElementById('btn');
         const resDiv = document.getElementById('res');
         
@@ -26,10 +29,26 @@
             });
         };
         
-        sb.auth.getSession().then(({data}) => { 
-            if(data.session) {
-                resDiv.innerHTML = '✅ Привет, ' + data.session.user.email;
-                btn.style.display = 'none';
+        function checkSession() {
+            sb.auth.getSession().then(({data}) => { 
+                if(data.session) {
+                    authContainer.style.display = 'none';
+                    resDiv.innerHTML = '✅ Привет, ' + data.session.user.email + ' <button id="logoutBtn">Выйти</button>';
+                    
+                    document.getElementById('logoutBtn').onclick = () => {
+                        sb.auth.signOut().then(() => {
+                            location.reload();
+                        });
+                    };
+                }
+            });
+        }
+        
+        checkSession();
+        
+        sb.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN') {
+                checkSession();
             }
         });
     </script>
