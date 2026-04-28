@@ -29,7 +29,6 @@
             text-align: center;
             max-width: 450px;
             width: 90%;
-            transition: transform 0.3s ease;
         }
 
         h1 {
@@ -57,27 +56,15 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .google-btn:hover {
             background: #357ae8;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .google-btn:active {
-            transform: translateY(0);
-        }
-
-        .google-icon {
-            font-size: 18px;
-            font-weight: bold;
         }
 
         .welcome-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: white;
             padding: 40px;
             border-radius: 20px;
             text-align: center;
@@ -86,31 +73,32 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        .welcome-emoji {
-            font-size: 64px;
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
             margin-bottom: 20px;
+            border: 4px solid #667eea;
+            object-fit: cover;
         }
 
-        .welcome-text {
+        .user-name {
             font-size: 24px;
-            margin-bottom: 15px;
             font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
         }
 
         .user-email {
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
+            font-size: 14px;
+            color: #666;
             margin-bottom: 25px;
-            word-break: break-all;
         }
 
         .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: #ff4757;
             color: white;
-            border: 2px solid white;
+            border: none;
             padding: 12px 30px;
             font-size: 16px;
             font-weight: 600;
@@ -120,15 +108,8 @@
         }
 
         .logout-btn:hover {
-            background: white;
-            color: #764ba2;
+            background: #e84118;
             transform: translateY(-2px);
-        }
-
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #aaa;
         }
     </style>
 </head>
@@ -138,10 +119,9 @@
             <h1>🔐 Вход через Google</h1>
             <div class="subtitle">Войдите в свой аккаунт, чтобы продолжить</div>
             <button class="google-btn" id="btn">
-                <span class="google-icon">G</span>
+                <span>G</span>
                 Войти через Google
             </button>
-            <div class="footer">Безопасный вход с помощью Google</div>
         </div>
     </div>
     <div id="res"></div>
@@ -165,26 +145,35 @@
             });
         };
         
-        function checkSession() {
-            sb.auth.getSession().then(({data}) => { 
-                if(data.session) {
-                    authContainer.style.display = 'none';
-                    resDiv.innerHTML = `
-                        <div class="welcome-box">
-                            <div class="welcome-emoji">🎉</div>
-                            <div class="welcome-text">Добро пожаловать!</div>
-                            <div class="user-email">${data.session.user.email}</div>
-                            <button class="logout-btn" id="logoutBtn">🚪 Выйти из аккаунта</button>
-                        </div>
-                    `;
-                    
-                    document.getElementById('logoutBtn').onclick = () => {
-                        sb.auth.signOut().then(() => {
-                            location.reload();
-                        });
-                    };
-                }
-            });
+        async function checkSession() {
+            const { data } = await sb.auth.getSession();
+            
+            if(data.session) {
+                authContainer.style.display = 'none';
+                
+                // Берём данные из user_metadata (Google сам их передаёт)
+                const userName = data.session.user.user_metadata?.full_name || data.session.user.user_metadata?.name || 'Пользователь';
+                const avatarUrl = data.session.user.user_metadata?.avatar_url || data.session.user.user_metadata?.picture;
+                const userEmail = data.session.user.email;
+                
+                resDiv.innerHTML = `
+                    <div class="welcome-box">
+                        ${avatarUrl ? 
+                            `<img src="${avatarUrl}" class="avatar" alt="Avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=667eea&color=fff'">` : 
+                            `<div class="avatar" style="background: #667eea; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;">${userName.charAt(0).toUpperCase()}</div>`
+                        }
+                        <div class="user-name">${userName}</div>
+                        <div class="user-email">${userEmail}</div>
+                        <button class="logout-btn" id="logoutBtn">🚪 Выйти</button>
+                    </div>
+                `;
+                
+                document.getElementById('logoutBtn').onclick = () => {
+                    sb.auth.signOut().then(() => {
+                        location.reload();
+                    });
+                };
+            }
         }
         
         checkSession();
