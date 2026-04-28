@@ -13,8 +13,22 @@
             'https://xwmckxrikcfalulwkhii.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
         );
-        document.getElementById('btn').onclick = () => sb.auth.signInWithOAuth({ provider: 'google' });
-        sb.auth.getSession().then(({data}) => { if(data.session) document.getElementById('res').innerHTML = '✅ Привет, ' + data.session.user.email; });
+        
+        document.getElementById('btn').onclick = () => {
+            sb.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: {
+                    redirectTo: 'https://kqwezshadow.github.io/shadow/'
+                }
+            });
+        };
+        
+        // Проверка сессии при загрузке страницы
+        sb.auth.getSession().then(({data}) => { 
+            if(data.session) {
+                document.getElementById('res').innerHTML = '✅ Привет, ' + data.session.user.email;
+            }
+        });
     </script>
 </body>
 </html>
