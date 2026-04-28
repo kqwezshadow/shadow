@@ -23,13 +23,11 @@
             });
         };
         
-        // Проверка сессии при загрузке страницы
-       sb.auth.signInWithOAuth({ 
-    provider: 'google',
-    options: {
-        redirectTo: 'https://kqwezshadow.github.io/shadow/'
-    }
-});
+        sb.auth.getSession().then(({data}) => { 
+            if(data.session) {
+                document.getElementById('res').innerHTML = '✅ Привет, ' + data.session.user.email;
+            }
+        });
     </script>
 </body>
 </html>
