@@ -24,11 +24,12 @@
         };
         
         // Проверка сессии при загрузке страницы
-        sb.auth.getSession().then(({data}) => { 
-            if(data.session) {
-                document.getElementById('res').innerHTML = '✅ Привет, ' + data.session.user.email;
-            }
-        });
+       sb.auth.signInWithOAuth({ 
+    provider: 'google',
+    options: {
+        redirectTo: 'https://kqwezshadow.github.io/shadow/'
+    }
+});
     </script>
 </body>
 </html>
