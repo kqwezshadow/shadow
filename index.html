@@ -122,6 +122,13 @@
             animation: pulse 1.5s infinite;
         }
 
+        .break-dot {
+            width: 8px;
+            height: 8px;
+            background: #ffc107;
+            border-radius: 50%;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; transform: scale(1); }
             100% { opacity: 0.5; transform: scale(1.2); }
@@ -145,20 +152,28 @@
             margin: 0 5px;
         }
 
-        .break-btn, .logout-header-btn {
+        .break-btn {
             border: none;
             padding: 8px 20px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
-        }
-
-        .break-btn {
             background: #ffc107;
             color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .break-btn.active {
+            background: #4cd964;
+            color: white;
         }
 
         .logout-header-btn {
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
             background: #ff4757;
             color: white;
         }
@@ -199,9 +214,9 @@
             border-radius: 10px;
         }
 
-        .location-title.колледж { background: #e3f2fd; color: #1976d2; }
-        .location-title.кофе { background: #fff3e0; color: #f57c00; }
-        .location-title.пк { background: #e8f5e9; color: #388e3c; }
+        .location-title.college { background: #e3f2fd; color: #1976d2; }
+        .location-title.coffee { background: #fff3e0; color: #f57c00; }
+        .location-title.pc { background: #e8f5e9; color: #388e3c; }
 
         .user-list {
             display: flex;
@@ -232,6 +247,7 @@
         }
 
         .user-card.online .status-dot { background: #4cd964; }
+        .user-card.break .status-dot { background: #ffc107; }
         .user-card.offline .status-dot { background: #adb5bd; }
 
         .chat-panel {
@@ -340,8 +356,12 @@
                 <img id="userAvatar" class="avatar">
                 <div class="user-details">
                     <span id="userName" class="user-name"></span>
-                    <div class="user-status"><span class="online-dot"></span><span>Онлайн</span></div>
+                    <div class="user-status" id="userStatusBlock">
+                        <span class="online-dot" id="statusDot"></span>
+                        <span id="statusText">Онлайн</span>
+                    </div>
                 </div>
+                <span id="studyTimer" class="study-timer">0 ч 0 мин</span>
             </div>
             <div>
                 <select id="locationSelect" class="location-select">
@@ -363,17 +383,17 @@
                 </div>
                 
                 <div class="location-group">
-                    <div class="location-title колледж">🏫 В колледже</div>
+                    <div class="location-title college">🏫 В колледже</div>
                     <div id="locationCollege" class="user-list"></div>
                 </div>
                 
                 <div class="location-group">
-                    <div class="location-title кофе">☕ В кофе</div>
+                    <div class="location-title coffee">☕ В кофе</div>
                     <div id="locationCoffee" class="user-list"></div>
                 </div>
                 
                 <div class="location-group">
-                    <div class="location-title пк">🖥️ В ПК клубе</div>
+                    <div class="location-title pc">🖥️ В ПК клубе</div>
                     <div id="locationPc" class="user-list"></div>
                 </div>
                 
@@ -400,39 +420,33 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
         );
 
-        // Хранилище
         let currentUser = null;
-        let allUsers = []; // все кто когда-либо входил
-        let onlineUsers = new Map(); // кто сейчас онлайн (id -> данные)
+        let allUsers = [];
+        let onlineUsers = new Map();
         let messages = [];
         
         let studyStartTime = null;
         let studyInterval = null;
         let isOnBreak = false;
-        let totalPausedTime = 0;
+        let totalBreakSeconds = 0;
         let breakStartTime = null;
         let currentLocation = 'В колледже';
 
-        // Загрузка данных из localStorage
         function loadLocalData() {
             const savedUsers = localStorage.getItem('all_users');
             if (savedUsers) allUsers = JSON.parse(savedUsers);
-            
             const savedMessages = localStorage.getItem('chat_messages');
             if (savedMessages) messages = JSON.parse(savedMessages);
         }
 
-        // Сохранение пользователей
         function saveUsers() {
             localStorage.setItem('all_users', JSON.stringify(allUsers));
         }
 
-        // Сохранение сообщений
         function saveMessages() {
             localStorage.setItem('chat_messages', JSON.stringify(messages.slice(-100)));
         }
 
-        // Добавление/обновление пользователя
         function addOrUpdateUser(user) {
             const existingIndex = allUsers.findIndex(u => u.id === user.id);
             if (existingIndex !== -1) {
@@ -443,40 +457,34 @@
             saveUsers();
         }
 
-        // Обновление статуса онлайн
         function updateOnlineStatus() {
             const now = new Date().getTime();
             onlineUsers.clear();
             
-            // Смотрим кто онлайн (сессия активна последние 2 минуты)
             allUsers.forEach(user => {
                 if (user.lastSeen && (now - user.lastSeen) < 120000) {
                     onlineUsers.set(user.id, user);
                 }
             });
             
-            // Добавляем текущего пользователя если его нет
             if (currentUser && !onlineUsers.has(currentUser.id)) {
                 currentUser.lastSeen = now;
                 currentUser.location = currentLocation;
+                currentUser.onBreak = isOnBreak;
                 onlineUsers.set(currentUser.id, currentUser);
                 addOrUpdateUser(currentUser);
+            } else if (currentUser) {
+                const updatedUser = onlineUsers.get(currentUser.id);
+                if (updatedUser) {
+                    updatedUser.onBreak = isOnBreak;
+                    updatedUser.location = currentLocation;
+                    onlineUsers.set(currentUser.id, updatedUser);
+                }
             }
             
             renderUserLists();
         }
 
-        // Обновление локации текущего пользователя
-        function updateLocation(location) {
-            currentLocation = location;
-            if (currentUser) {
-                currentUser.location = location;
-                addOrUpdateUser(currentUser);
-                updateOnlineStatus();
-            }
-        }
-
-        // Рендер списков пользователей
         function renderUserLists() {
             const onlineList = document.getElementById('onlineList');
             const locationCollege = document.getElementById('locationCollege');
@@ -491,67 +499,87 @@
             onlineCount.textContent = onlineArr.length;
             
             onlineList.innerHTML = onlineArr.map(u => `
-                <div class="user-card online">
+                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
                     <span class="status-dot"></span>
                     <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
-                    <span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''}</span>
+                    <span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''} ${u.onBreak ? '☕' : ''}</span>
                 </div>
             `).join('');
             
-            // По локациям
             const collegeUsers = onlineArr.filter(u => u.location === 'В колледже');
             const coffeeUsers = onlineArr.filter(u => u.location === 'В кофе');
             const pcUsers = onlineArr.filter(u => u.location === 'В ПК клубе');
             
             locationCollege.innerHTML = collegeUsers.map(u => `
-                <div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span>
+                </div>
             `).join('');
             
             locationCoffee.innerHTML = coffeeUsers.map(u => `
-                <div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span>
+                </div>
             `).join('');
             
             locationPc.innerHTML = pcUsers.map(u => `
-                <div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span>
+                </div>
             `).join('');
             
             offlineList.innerHTML = offlineArr.map(u => `
-                <div class="user-card offline"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+                <div class="user-card offline">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${u.full_name}</span>
+                </div>
             `).join('');
         }
 
-        // Таймер учёбы
         function updateStudyTimer() {
             if (!studyStartTime) return;
             const now = new Date().getTime();
             let elapsed = (now - studyStartTime) / 1000;
             if (isOnBreak && breakStartTime) {
                 const breakElapsed = (now - breakStartTime) / 1000;
-                totalPausedTime += breakElapsed;
+                totalBreakSeconds += breakElapsed;
                 breakStartTime = now;
-                elapsed -= totalPausedTime;
+                elapsed -= totalBreakSeconds;
             } else if (!isOnBreak) {
-                elapsed -= totalPausedTime;
+                elapsed -= totalBreakSeconds;
             }
+            if (elapsed < 0) elapsed = 0;
             const hours = Math.floor(elapsed / 3600);
             const minutes = Math.floor((elapsed % 3600) / 60);
             document.getElementById('studyTimer').innerHTML = `⏱️ ${hours} ч ${minutes} мин`;
         }
 
-        // Чат
         function renderMessages() {
             const container = document.getElementById('chatMessages');
             if (!container) return;
-            container.innerHTML = messages.map(msg => `
+            container.innerHTML = messages.slice(-50).map(msg => `
                 <div class="message ${msg.user_id === currentUser?.id ? 'own' : ''}">
                     <img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}">
                     <div>
                         <div class="message-sender">${msg.user_name}</div>
-                        <div class="message-bubble">${msg.text}</div>
+                        <div class="message-bubble">${escapeHtml(msg.text)}</div>
                     </div>
                 </div>
             `).join('');
             container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function sendMessage() {
@@ -575,27 +603,27 @@
 
         window.sendMessage = sendMessage;
 
-        // Обновление lastSeen (каждые 30 секунд)
         function startHeartbeat() {
             setInterval(() => {
                 if (currentUser) {
                     currentUser.lastSeen = new Date().getTime();
                     currentUser.location = currentLocation;
+                    currentUser.onBreak = isOnBreak;
                     addOrUpdateUser(currentUser);
                     updateOnlineStatus();
                 }
-            }, 30000);
+            }, 15000);
         }
 
-        // Инициализация после входа
         async function initApp(user) {
             currentUser = {
                 id: user.id,
                 email: user.email,
-                full_name: user.user_metadata?.full_name || user.email,
+                full_name: user.user_metadata?.full_name || user.email.split('@')[0],
                 avatar_url: user.user_metadata?.avatar_url,
                 lastSeen: new Date().getTime(),
-                location: 'В колледже'
+                location: 'В колледже',
+                onBreak: false
             };
             
             document.getElementById('userName').textContent = currentUser.full_name;
@@ -605,39 +633,51 @@
             addOrUpdateUser(currentUser);
             updateOnlineStatus();
             
-            // Запуск таймера
             studyStartTime = new Date().getTime();
-            totalPausedTime = 0;
+            totalBreakSeconds = 0;
             if (studyInterval) clearInterval(studyInterval);
             studyInterval = setInterval(updateStudyTimer, 1000);
             
-            // Локация
-            document.getElementById('locationSelect').onchange = (e) => updateLocation(e.target.value);
+            document.getElementById('locationSelect').value = currentLocation;
+            document.getElementById('locationSelect').onchange = (e) => {
+                currentLocation = e.target.value;
+                if (currentUser) {
+                    currentUser.location = currentLocation;
+                    addOrUpdateUser(currentUser);
+                    updateOnlineStatus();
+                }
+            };
             
-            // Перерыв
-            document.getElementById('breakBtn').onclick = () => {
+            const breakBtn = document.getElementById('breakBtn');
+            breakBtn.onclick = () => {
                 if (isOnBreak) {
                     isOnBreak = false;
                     breakStartTime = null;
-                    document.getElementById('breakBtn').textContent = '⏸ Перерыв';
-                    document.getElementById('breakBtn').style.background = '#ffc107';
+                    breakBtn.textContent = '⏸ Перерыв';
+                    breakBtn.classList.remove('active');
+                    document.getElementById('statusDot').className = 'online-dot';
+                    document.getElementById('statusText').textContent = 'Онлайн';
                 } else {
                     isOnBreak = true;
                     breakStartTime = new Date().getTime();
-                    document.getElementById('breakBtn').textContent = '▶ Вернуться';
-                    document.getElementById('breakBtn').style.background = '#4cd964';
+                    breakBtn.textContent = '▶ Вернуться';
+                    breakBtn.classList.add('active');
+                    document.getElementById('statusDot').className = 'break-dot';
+                    document.getElementById('statusText').textContent = 'На перерыве';
+                }
+                if (currentUser) {
+                    currentUser.onBreak = isOnBreak;
+                    addOrUpdateUser(currentUser);
+                    updateOnlineStatus();
                 }
                 updateStudyTimer();
             };
             
             renderMessages();
             startHeartbeat();
-            
-            // Обновление статуса раз в секунду
             setInterval(() => updateOnlineStatus(), 5000);
         }
 
-        // Вход
         document.getElementById('loginBtn').onclick = () => {
             sb.auth.signInWithOAuth({
                 provider: 'google',
@@ -645,12 +685,10 @@
             });
         };
 
-        // Выход
         document.getElementById('logoutBtn')?.addEventListener('click', () => {
             sb.auth.signOut().then(() => location.reload());
         });
 
-        // Проверка сессии
         async function checkSession() {
             loadLocalData();
             const { data } = await sb.auth.getSession();
@@ -666,6 +704,10 @@
 
         sb.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_IN') checkSession();
+            if (event === 'SIGNED_OUT') {
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
         });
         
         checkSession();
