@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Login - Монитор группы</title>
+    <title>Монитор группы - Turan Education</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -18,7 +18,6 @@
             min-height: 100vh;
         }
 
-        /* Форма входа */
         .login-container {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -69,13 +68,11 @@
             transform: translateY(-2px);
         }
 
-        /* Основной интерфейс после входа */
         .main-app {
             display: none;
             min-height: 100vh;
         }
 
-        /* Шапка */
         .header {
             background: white;
             padding: 15px 30px;
@@ -138,9 +135,17 @@
             font-weight: 600;
         }
 
-        .logout-header-btn {
-            background: #ff4757;
-            color: white;
+        .location-select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .break-btn, .logout-header-btn {
             border: none;
             padding: 8px 20px;
             border-radius: 20px;
@@ -148,7 +153,16 @@
             font-size: 14px;
         }
 
-        /* Основной контент */
+        .break-btn {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .logout-header-btn {
+            background: #ff4757;
+            color: white;
+        }
+
         .main-content {
             display: flex;
             gap: 20px;
@@ -158,7 +172,6 @@
             flex-wrap: wrap;
         }
 
-        /* Левая панель - Монитор группы */
         .group-monitor {
             flex: 1;
             min-width: 300px;
@@ -175,44 +188,35 @@
             padding-left: 12px;
         }
 
-        .online-users {
+        .location-group {
             margin-bottom: 25px;
         }
 
-        .online-users h4 {
-            color: #4cd964;
-            font-size: 14px;
+        .location-title {
+            font-weight: 600;
             margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 10px;
         }
+
+        .location-title.колледж { background: #e3f2fd; color: #1976d2; }
+        .location-title.кофе { background: #fff3e0; color: #f57c00; }
+        .location-title.пк { background: #e8f5e9; color: #388e3c; }
 
         .user-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
         }
 
         .user-card {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 15px;
+            gap: 8px;
+            padding: 6px 12px;
             background: #f8f9fa;
             border-radius: 30px;
-            font-size: 14px;
-        }
-
-        .user-card.online .status-dot {
-            background: #4cd964;
-        }
-
-        .user-card.offline .status-dot {
-            background: #ced4da;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+            font-size: 13px;
         }
 
         .user-card img {
@@ -221,7 +225,15 @@
             border-radius: 50%;
         }
 
-        /* Правая панель - Чат */
+        .user-card .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .user-card.online .status-dot { background: #4cd964; }
+        .user-card.offline .status-dot { background: #adb5bd; }
+
         .chat-panel {
             flex: 1;
             min-width: 350px;
@@ -236,12 +248,11 @@
             padding: 15px 20px;
             border-bottom: 1px solid #e9ecef;
             font-weight: 600;
-            color: #333;
         }
 
         .chat-messages {
             flex: 1;
-            height: 400px;
+            height: 450px;
             overflow-y: auto;
             padding: 20px;
             display: flex;
@@ -297,7 +308,6 @@
             border: 1px solid #dee2e6;
             border-radius: 25px;
             outline: none;
-            font-size: 14px;
         }
 
         .chat-input-area button {
@@ -309,84 +319,73 @@
             cursor: pointer;
         }
 
-        /* Кнопка перерыв */
-        .break-btn {
-            background: #ffc107;
-            color: #333;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
         @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-            .message {
-                max-width: 90%;
-            }
+            .main-content { flex-direction: column; }
+            .message { max-width: 90%; }
         }
     </style>
 </head>
 <body>
-    <!-- Форма входа -->
     <div id="loginContainer" class="login-container">
         <div class="login-box">
             <h1>🔐 Вход через Google</h1>
             <div class="subtitle">Войдите в свой аккаунт, чтобы продолжить</div>
-            <button class="google-btn" id="loginBtn">
-                <span>G</span>
-                Войти через Google
-            </button>
+            <button class="google-btn" id="loginBtn">G Войти через Google</button>
         </div>
     </div>
 
-    <!-- Основное приложение после входа -->
     <div id="mainApp" class="main-app">
-        <!-- Шапка -->
         <div class="header">
             <div class="user-info">
-                <img id="userAvatar" class="avatar" src="" alt="Avatar">
+                <img id="userAvatar" class="avatar">
                 <div class="user-details">
                     <span id="userName" class="user-name"></span>
-                    <div class="user-status">
-                        <span class="online-dot"></span>
-                        <span>Онлайн</span>
-                    </div>
+                    <div class="user-status"><span class="online-dot"></span><span>Онлайн</span></div>
                 </div>
             </div>
             <div>
-                <span id="studyTimer" class="study-timer">0 ч 0 мин</span>
+                <select id="locationSelect" class="location-select">
+                    <option value="В колледже">🏫 В колледже</option>
+                    <option value="В кофе">☕ В кофе</option>
+                    <option value="В ПК клубе">🖥️ В ПК клубе</option>
+                </select>
                 <button id="breakBtn" class="break-btn">⏸ Перерыв</button>
                 <button id="logoutBtn" class="logout-header-btn">🚪 Выход</button>
             </div>
         </div>
 
-        <!-- Основной контент -->
         <div class="main-content">
-            <!-- Левая панель - Монитор группы -->
             <div class="group-monitor">
                 <h3>📊 Монитор группы</h3>
-                <div class="online-users">
+                <div id="onlineUsers">
                     <h4>🟢 Онлайн — <span id="onlineCount">0</span></h4>
-                    <div id="onlineUsersList" class="user-list"></div>
+                    <div id="onlineList" class="user-list"></div>
                 </div>
-                <div class="offline-users">
-                    <h4>⚫ Офлайн</h4>
-                    <div id="offlineUsersList" class="user-list"></div>
+                
+                <div class="location-group">
+                    <div class="location-title колледж">🏫 В колледже</div>
+                    <div id="locationCollege" class="user-list"></div>
+                </div>
+                
+                <div class="location-group">
+                    <div class="location-title кофе">☕ В кофе</div>
+                    <div id="locationCoffee" class="user-list"></div>
+                </div>
+                
+                <div class="location-group">
+                    <div class="location-title пк">🖥️ В ПК клубе</div>
+                    <div id="locationPc" class="user-list"></div>
+                </div>
+                
+                <div id="offlineUsers">
+                    <h4>⚫ Офлайн (всего в системе)</h4>
+                    <div id="offlineList" class="user-list"></div>
                 </div>
             </div>
 
-            <!-- Правая панель - Чат -->
             <div class="chat-panel">
-                <div class="chat-header">
-                    💬 Общий чат
-                </div>
-                <div id="chatMessages" class="chat-messages">
-                    <div style="text-align: center; color: #adb5bd;">Загрузка сообщений...</div>
-                </div>
+                <div class="chat-header">💬 Общий чат</div>
+                <div id="chatMessages" class="chat-messages"></div>
                 <div class="chat-input-area">
                     <input type="text" id="messageInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
                     <button onclick="sendMessage()">📤 Отправить</button>
@@ -396,246 +395,280 @@
     </div>
 
     <script>
-        // Supabase клиент
         const sb = window.supabase.createClient(
             'https://xwmckxrikcfalulwkhii.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
         );
 
-        // DOM элементы
-        const loginContainer = document.getElementById('loginContainer');
-        const mainApp = document.getElementById('mainApp');
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutHeaderBtn = document.getElementById('logoutBtn');
-        const breakBtn = document.getElementById('breakBtn');
-        const studyTimerSpan = document.getElementById('studyTimer');
-        const onlineCountSpan = document.getElementById('onlineCount');
-        const onlineUsersList = document.getElementById('onlineUsersList');
-        const offlineUsersList = document.getElementById('offlineUsersList');
-        const chatMessagesDiv = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-
-        // Переменные
+        // Хранилище
         let currentUser = null;
+        let allUsers = []; // все кто когда-либо входил
+        let onlineUsers = new Map(); // кто сейчас онлайн (id -> данные)
+        let messages = [];
+        
         let studyStartTime = null;
         let studyInterval = null;
         let isOnBreak = false;
+        let totalPausedTime = 0;
         let breakStartTime = null;
-        let totalBreakTime = 0;
-        let onlineUsers = new Map(); // userId -> { name, avatar, status }
-        let currentUserEmail = '';
+        let currentLocation = 'В колледже';
 
-        // Вход через Google
-        loginBtn.onclick = () => {
-            sb.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.href
+        // Загрузка данных из localStorage
+        function loadLocalData() {
+            const savedUsers = localStorage.getItem('all_users');
+            if (savedUsers) allUsers = JSON.parse(savedUsers);
+            
+            const savedMessages = localStorage.getItem('chat_messages');
+            if (savedMessages) messages = JSON.parse(savedMessages);
+        }
+
+        // Сохранение пользователей
+        function saveUsers() {
+            localStorage.setItem('all_users', JSON.stringify(allUsers));
+        }
+
+        // Сохранение сообщений
+        function saveMessages() {
+            localStorage.setItem('chat_messages', JSON.stringify(messages.slice(-100)));
+        }
+
+        // Добавление/обновление пользователя
+        function addOrUpdateUser(user) {
+            const existingIndex = allUsers.findIndex(u => u.id === user.id);
+            if (existingIndex !== -1) {
+                allUsers[existingIndex] = { ...allUsers[existingIndex], ...user };
+            } else {
+                allUsers.push(user);
+            }
+            saveUsers();
+        }
+
+        // Обновление статуса онлайн
+        function updateOnlineStatus() {
+            const now = new Date().getTime();
+            onlineUsers.clear();
+            
+            // Смотрим кто онлайн (сессия активна последние 2 минуты)
+            allUsers.forEach(user => {
+                if (user.lastSeen && (now - user.lastSeen) < 120000) {
+                    onlineUsers.set(user.id, user);
                 }
             });
-        };
-
-        // Отправка сообщения
-        window.sendMessage = async function() {
-            const text = messageInput.value.trim();
-            if (!text || !currentUser) return;
             
-            const message = {
-                text: text,
-                user_id: currentUser.id,
-                user_name: currentUser.user_metadata?.full_name || currentUser.email,
-                user_avatar: currentUser.user_metadata?.avatar_url,
-                created_at: new Date().toISOString()
-            };
-            
-            // Сохраняем в Supabase (нужно создать таблицу messages)
-            const { error } = await sb.from('messages').insert(message);
-            if (!error) {
-                messageInput.value = '';
-                loadMessages();
-            } else {
-                // Если нет таблицы, просто показываем локально
-                addMessageToChat(message, true);
-                messageInput.value = '';
+            // Добавляем текущего пользователя если его нет
+            if (currentUser && !onlineUsers.has(currentUser.id)) {
+                currentUser.lastSeen = now;
+                currentUser.location = currentLocation;
+                onlineUsers.set(currentUser.id, currentUser);
+                addOrUpdateUser(currentUser);
             }
-        };
-
-        // Добавление сообщения в чат
-        function addMessageToChat(message, isOwn = false) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isOwn ? 'own' : ''}`;
-            msgDiv.innerHTML = `
-                <img class="message-avatar" src="${message.user_avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(message.user_name)}" alt="">
-                <div>
-                    <div class="message-sender">${message.user_name}</div>
-                    <div class="message-bubble">${message.text}</div>
-                </div>
-            `;
-            chatMessagesDiv.appendChild(msgDiv);
-            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+            
+            renderUserLists();
         }
 
-        // Загрузка сообщений (если есть таблица)
-        async function loadMessages() {
-            try {
-                const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                if (data && data.length) {
-                    chatMessagesDiv.innerHTML = '';
-                    data.forEach(msg => {
-                        const isOwn = msg.user_id === currentUser?.id;
-                        addMessageToChat(msg, isOwn);
-                    });
-                }
-            } catch(e) {
-                // Если таблицы нет, показываем демо-сообщения
-                if (chatMessagesDiv.innerHTML.includes('Загрузка')) {
-                    chatMessagesDiv.innerHTML = '';
-                    const demoMessages = [
-                        { text: '123', user_name: 'Дуйсенбек Алмас Әлфарабиұлы', user_avatar: null },
-                        { text: '321', user_name: 'Алмас Дуйсенбек', user_avatar: null }
-                    ];
-                    demoMessages.forEach(msg => addMessageToChat(msg, msg.user_name === currentUser?.user_metadata?.full_name));
-                }
+        // Обновление локации текущего пользователя
+        function updateLocation(location) {
+            currentLocation = location;
+            if (currentUser) {
+                currentUser.location = location;
+                addOrUpdateUser(currentUser);
+                updateOnlineStatus();
             }
         }
 
-        // Обновление списка пользователей онлайн
-        async function updateOnlineUsers() {
-            // В реальном приложении нужно сохранять статус в Supabase
-            // Сейчас показываем только текущего пользователя как онлайн
-            const currentUserName = currentUser?.user_metadata?.full_name || currentUser?.email;
-            const currentUserAvatar = currentUser?.user_metadata?.avatar_url;
+        // Рендер списков пользователей
+        function renderUserLists() {
+            const onlineList = document.getElementById('onlineList');
+            const locationCollege = document.getElementById('locationCollege');
+            const locationCoffee = document.getElementById('locationCoffee');
+            const locationPc = document.getElementById('locationPc');
+            const offlineList = document.getElementById('offlineList');
+            const onlineCount = document.getElementById('onlineCount');
             
-            onlineUsersList.innerHTML = `
+            const onlineArr = Array.from(onlineUsers.values());
+            const offlineArr = allUsers.filter(u => !onlineUsers.has(u.id));
+            
+            onlineCount.textContent = onlineArr.length;
+            
+            onlineList.innerHTML = onlineArr.map(u => `
                 <div class="user-card online">
                     <span class="status-dot"></span>
-                    <img src="${currentUserAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUserName)}" alt="">
-                    <span>${currentUserName} (Вы)</span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''}</span>
                 </div>
-            `;
-            offlineUsersList.innerHTML = `
-                <div class="user-card offline">
-                    <span class="status-dot"></span>
-                    <img src="https://ui-avatars.com/api/?name=Алмас+Дуйсенбек" alt="">
-                    <span>Алмас Дуйсенбек</span>
-                </div>
-                <div class="user-card offline">
-                    <span class="status-dot"></span>
-                    <img src="https://ui-avatars.com/api/?name=Дуйсенбек+Алмас" alt="">
-                    <span>Дуйсенбек Алмас</span>
-                </div>
-            `;
-            onlineCountSpan.textContent = '1';
+            `).join('');
+            
+            // По локациям
+            const collegeUsers = onlineArr.filter(u => u.location === 'В колледже');
+            const coffeeUsers = onlineArr.filter(u => u.location === 'В кофе');
+            const pcUsers = onlineArr.filter(u => u.location === 'В ПК клубе');
+            
+            locationCollege.innerHTML = collegeUsers.map(u => `
+                <div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+            `).join('');
+            
+            locationCoffee.innerHTML = coffeeUsers.map(u => `
+                <div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+            `).join('');
+            
+            locationPc.innerHTML = pcUsers.map(u => `
+                <div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+            `).join('');
+            
+            offlineList.innerHTML = offlineArr.map(u => `
+                <div class="user-card offline"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>
+            `).join('');
         }
 
-        // Обновление таймера учёбы
+        // Таймер учёбы
         function updateStudyTimer() {
             if (!studyStartTime) return;
-            const now = new Date();
-            let elapsed = Math.floor((now - studyStartTime) / 1000);
+            const now = new Date().getTime();
+            let elapsed = (now - studyStartTime) / 1000;
             if (isOnBreak && breakStartTime) {
-                const breakElapsed = Math.floor((now - breakStartTime) / 1000);
-                totalBreakTime += breakElapsed;
+                const breakElapsed = (now - breakStartTime) / 1000;
+                totalPausedTime += breakElapsed;
                 breakStartTime = now;
-                elapsed -= totalBreakTime;
+                elapsed -= totalPausedTime;
+            } else if (!isOnBreak) {
+                elapsed -= totalPausedTime;
             }
             const hours = Math.floor(elapsed / 3600);
             const minutes = Math.floor((elapsed % 3600) / 60);
-            studyTimerSpan.textContent = `${hours} ч ${minutes} мин`;
+            document.getElementById('studyTimer').innerHTML = `⏱️ ${hours} ч ${minutes} мин`;
         }
 
-        // Перерыв
-        if (breakBtn) {
-            breakBtn.onclick = () => {
+        // Чат
+        function renderMessages() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            container.innerHTML = messages.map(msg => `
+                <div class="message ${msg.user_id === currentUser?.id ? 'own' : ''}">
+                    <img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}">
+                    <div>
+                        <div class="message-sender">${msg.user_name}</div>
+                        <div class="message-bubble">${msg.text}</div>
+                    </div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+            
+            const message = {
+                id: Date.now(),
+                user_id: currentUser.id,
+                user_name: currentUser.full_name,
+                avatar_url: currentUser.avatar_url,
+                text: text,
+                time: new Date().toISOString()
+            };
+            messages.push(message);
+            saveMessages();
+            renderMessages();
+            input.value = '';
+        }
+
+        window.sendMessage = sendMessage;
+
+        // Обновление lastSeen (каждые 30 секунд)
+        function startHeartbeat() {
+            setInterval(() => {
+                if (currentUser) {
+                    currentUser.lastSeen = new Date().getTime();
+                    currentUser.location = currentLocation;
+                    addOrUpdateUser(currentUser);
+                    updateOnlineStatus();
+                }
+            }, 30000);
+        }
+
+        // Инициализация после входа
+        async function initApp(user) {
+            currentUser = {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email,
+                avatar_url: user.user_metadata?.avatar_url,
+                lastSeen: new Date().getTime(),
+                location: 'В колледже'
+            };
+            
+            document.getElementById('userName').textContent = currentUser.full_name;
+            const avatarImg = document.getElementById('userAvatar');
+            avatarImg.src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name)}&background=667eea&color=fff`;
+            
+            addOrUpdateUser(currentUser);
+            updateOnlineStatus();
+            
+            // Запуск таймера
+            studyStartTime = new Date().getTime();
+            totalPausedTime = 0;
+            if (studyInterval) clearInterval(studyInterval);
+            studyInterval = setInterval(updateStudyTimer, 1000);
+            
+            // Локация
+            document.getElementById('locationSelect').onchange = (e) => updateLocation(e.target.value);
+            
+            // Перерыв
+            document.getElementById('breakBtn').onclick = () => {
                 if (isOnBreak) {
-                    // Возврат с перерыва
                     isOnBreak = false;
-                    breakBtn.textContent = '⏸ Перерыв';
-                    breakBtn.style.background = '#ffc107';
-                    if (breakStartTime) {
-                        const breakElapsed = Math.floor((new Date() - breakStartTime) / 1000);
-                        totalBreakTime += breakElapsed;
-                        breakStartTime = null;
-                    }
+                    breakStartTime = null;
+                    document.getElementById('breakBtn').textContent = '⏸ Перерыв';
+                    document.getElementById('breakBtn').style.background = '#ffc107';
                 } else {
-                    // Начать перерыв
                     isOnBreak = true;
-                    breakStartTime = new Date();
-                    breakBtn.textContent = '▶ Вернуться';
-                    breakBtn.style.background = '#4cd964';
+                    breakStartTime = new Date().getTime();
+                    document.getElementById('breakBtn').textContent = '▶ Вернуться';
+                    document.getElementById('breakBtn').style.background = '#4cd964';
                 }
                 updateStudyTimer();
             };
+            
+            renderMessages();
+            startHeartbeat();
+            
+            // Обновление статуса раз в секунду
+            setInterval(() => updateOnlineStatus(), 5000);
         }
 
-        // Проверка сессии и инициализация приложения
-        async function initApp() {
-            const { data } = await sb.auth.getSession();
-            
-            if (data.session) {
-                currentUser = data.session.user;
-                currentUserEmail = currentUser.email;
-                
-                // Данные пользователя
-                const userName = currentUser.user_metadata?.full_name || currentUser.email;
-                const avatarUrl = currentUser.user_metadata?.avatar_url;
-                
-                document.getElementById('userName').textContent = userName;
-                const userAvatar = document.getElementById('userAvatar');
-                userAvatar.src = avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=667eea&color=fff`;
-                userAvatar.onerror = () => {
-                    userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=667eea&color=fff`;
-                };
-                
-                // Запуск таймера учёбы
-                studyStartTime = new Date();
-                if (studyInterval) clearInterval(studyInterval);
-                studyInterval = setInterval(updateStudyTimer, 1000);
-                
-                // Скрыть форму входа, показать приложение
-                loginContainer.style.display = 'none';
-                mainApp.style.display = 'block';
-                
-                // Загрузить чат и пользователей
-                loadMessages();
-                updateOnlineUsers();
-                
-                // Подписка на новые сообщения (если есть таблица)
-                try {
-                    sb.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-                        const msg = payload.new;
-                        const isOwn = msg.user_id === currentUser?.id;
-                        addMessageToChat(msg, isOwn);
-                    }).subscribe();
-                } catch(e) {}
-            } else {
-                loginContainer.style.display = 'flex';
-                mainApp.style.display = 'none';
-            }
-        }
-        
+        // Вход
+        document.getElementById('loginBtn').onclick = () => {
+            sb.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.href }
+            });
+        };
+
         // Выход
-        if (logoutHeaderBtn) {
-            logoutHeaderBtn.onclick = () => {
-                sb.auth.signOut().then(() => {
-                    if (studyInterval) clearInterval(studyInterval);
-                    location.reload();
-                });
-            };
-        }
-        
-        // Слушаем изменения авторизации
-        sb.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN') {
-                initApp();
-            } else if (event === 'SIGNED_OUT') {
-                loginContainer.style.display = 'flex';
-                mainApp.style.display = 'none';
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            sb.auth.signOut().then(() => location.reload());
+        });
+
+        // Проверка сессии
+        async function checkSession() {
+            loadLocalData();
+            const { data } = await sb.auth.getSession();
+            if (data.session) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                await initApp(data.session.user);
+            } else {
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
             }
+        }
+
+        sb.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN') checkSession();
         });
         
-        // Запуск
-        initApp();
+        checkSession();
     </script>
 </body>
 </html>
