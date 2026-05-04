@@ -551,4 +551,187 @@
         // Остальные функции (users, chat и т.д.)
         function loadLocalData() {
             const savedUsers = localStorage.getItem('all_users');
-            if (savedUsers) allUsers
+            if (savedUsers) allUsers = JSON.parse(savedUsers);
+            const savedMessages = localStorage.getItem('chat_messages');
+            if (savedMessages) messages = JSON.parse(savedMessages);
+        }
+
+        function saveUsers() { localStorage.setItem('all_users', JSON.stringify(allUsers)); }
+        function saveMessages() { localStorage.setItem('chat_messages', JSON.stringify(messages.slice(-100))); }
+
+        function addOrUpdateUser(user) {
+            const existingIndex = allUsers.findIndex(u => u.id === user.id);
+            if (existingIndex !== -1) { allUsers[existingIndex] = { ...allUsers[existingIndex], ...user }; } 
+            else { allUsers.push(user); }
+            saveUsers();
+            renderTopStudents();
+        }
+
+        function updateOnlineStatus() {
+            const now = new Date().getTime();
+            onlineUsers.clear();
+            allUsers.forEach(user => {
+                if (user.lastSeen && (now - user.lastSeen) < 120000) { onlineUsers.set(user.id, user); }
+            });
+            if (currentUser && !onlineUsers.has(currentUser.id)) {
+                currentUser.lastSeen = now;
+                currentUser.location = currentLocation;
+                currentUser.onBreak = isOnBreak;
+                onlineUsers.set(currentUser.id, currentUser);
+                addOrUpdateUser(currentUser);
+            } else if (currentUser) {
+                const updatedUser = onlineUsers.get(currentUser.id);
+                if (updatedUser) { updatedUser.onBreak = isOnBreak; updatedUser.location = currentLocation; }
+            }
+            renderUserLists();
+        }
+
+        function renderUserLists() {
+            const onlineList = document.getElementById('onlineList');
+            const locationCollege = document.getElementById('locationCollege');
+            const locationCoffee = document.getElementById('locationCoffee');
+            const locationPc = document.getElementById('locationPc');
+            const offlineList = document.getElementById('offlineList');
+            const onlineCount = document.getElementById('onlineCount');
+            const onlineArr = Array.from(onlineUsers.values());
+            const offlineArr = allUsers.filter(u => !onlineUsers.has(u.id));
+            onlineCount.textContent = onlineArr.length;
+            onlineList.innerHTML = onlineArr.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''} ${u.onBreak ? '☕' : ''}</span></div>`).join('');
+            const collegeUsers = onlineArr.filter(u => u.location === 'В колледже');
+            const coffeeUsers = onlineArr.filter(u => u.location === 'В кофе');
+            const pcUsers = onlineArr.filter(u => u.location === 'В ПК клубе');
+            locationCollege.innerHTML = collegeUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
+            locationCoffee.innerHTML = coffeeUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
+            locationPc.innerHTML = pcUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
+            offlineList.innerHTML = offlineArr.map(u => `<div class="user-card offline"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>`).join('');
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            container.innerHTML = messages.slice(-50).map(msg => `<div class="message ${msg.user_id === currentUser?.id ? 'own' : ''}"><img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}"><div><div class="message-sender">${msg.user_name}</div><div class="message-bubble">${escapeHtml(msg.text)}</div></div></div>`).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+            const message = { id: Date.now(), user_id: currentUser.id, user_name: currentUser.full_name, avatar_url: currentUser.avatar_url, text: text, time: new Date().toISOString() };
+            messages.push(message);
+            saveMessages();
+            renderMessages();
+            input.value = '';
+            onMessageSent();
+        }
+        window.sendMessage = sendMessage;
+
+        function startHeartbeat() {
+            setInterval(() => {
+                if (currentUser) {
+                    currentUser.lastSeen = new Date().getTime();
+                    currentUser.location = currentLocation;
+                    currentUser.onBreak = isOnBreak;
+                    addOrUpdateUser(currentUser);
+                    updateOnlineStatus();
+                }
+            }, 15000);
+        }
+
+        async function initApp(user) {
+            currentUser = {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email.split('@')[0],
+                avatar_url: user.user_metadata?.avatar_url,
+                lastSeen: new Date().getTime(),
+                location: 'В колледже',
+                onBreak: false
+            };
+            
+            document.getElementById('userName').textContent = currentUser.full_name;
+            const avatarImg = document.getElementById('userAvatar');
+            avatarImg.src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name)}&background=667eea&color=fff`;
+            
+            addOrUpdateUser(currentUser);
+            loadUserData();
+            updateOnlineStatus();
+            updateTimerDisplay();
+            startTimer();
+            
+            // Запоминаем время первого входа для "Ранней пташки"
+            userDailyStartTime = new Date();
+            userTotalSessions++;
+            saveUserData();
+            
+            document.getElementById('locationSelect').value = currentLocation;
+            document.getElementById('locationSelect').onchange = (e) => {
+                currentLocation = e.target.value;
+                if (currentUser) { currentUser.location = currentLocation; addOrUpdateUser(currentUser); updateOnlineStatus(); }
+            };
+            
+            const breakBtn = document.getElementById('breakBtn');
+            breakBtn.onclick = () => {
+                if (isOnBreak) {
+                    isOnBreak = false;
+                    breakBtn.textContent = '⏸ Перерыв';
+                    breakBtn.classList.remove('active');
+                    document.getElementById('statusDot').className = 'online-dot';
+                    document.getElementById('statusText').textContent = 'Онлайн';
+                } else {
+                    isOnBreak = true;
+                    breakBtn.textContent = '▶ Вернуться';
+                    breakBtn.classList.add('active');
+                    document.getElementById('statusDot').className = 'break-dot';
+                    document.getElementById('statusText').textContent = 'На перерыве';
+                }
+                if (currentUser) { currentUser.onBreak = isOnBreak; addOrUpdateUser(currentUser); updateOnlineStatus(); }
+            };
+            
+            renderMessages();
+            startHeartbeat();
+            setInterval(() => updateOnlineStatus(), 5000);
+            setInterval(() => {
+                if (!isOnBreak && userMaxSessionDuration < totalSeconds % 86400) {
+                    userMaxSessionDuration = totalSeconds % 86400;
+                    saveUserData();
+                    renderAchievements();
+                }
+            }, 60000);
+            
+            renderTopStudents();
+            renderAchievements();
+        }
+
+        document.getElementById('loginBtn').onclick = () => {
+            sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+        };
+
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            sb.auth.signOut().then(() => { stopTimer(); location.reload(); });
+        });
+
+        async function checkSession() {
+            loadLocalData();
+            const { data } = await sb.auth.getSession();
+            if (data.session) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                await initApp(data.session.user);
+            } else {
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        }
+
+        sb.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN') checkSession();
+            if (event === 'SIGNED_OUT') { document.getElementById('loginContainer').style.display = 'flex'; document.getElementById('mainApp').style.display = 'none'; }
+        });
+        
+        checkSession();
+    </script>
+</body>
+</html>
