@@ -7,112 +7,28 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-        }
-
-        .login-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-box {
-            background: white;
-            border-radius: 20px;
-            padding: 50px 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-        }
-
-        .login-box h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
-        .login-box .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
-
-        .google-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 14px 35px;
-            font-size: 16px;
-            font-weight: 500;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .google-btn:hover { background: #357ae8; transform: translateY(-2px); }
-
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; min-height: 100vh; }
+        .login-container { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: white; border-radius: 20px; padding: 50px 40px; text-align: center; max-width: 450px; width: 90%; }
+        .login-box h1 { color: #333; margin-bottom: 10px; }
+        .google-btn { background: #4285f4; color: white; border: none; padding: 14px 35px; font-size: 16px; border-radius: 50px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+        .google-btn:hover { background: #357ae8; }
         .main-app { display: none; min-height: 100vh; }
-
-        .header {
-            background: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
+        .header { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .user-info { display: flex; align-items: center; gap: 15px; }
-        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
-        .user-details { display: flex; flex-direction: column; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; }
         .user-name { font-weight: 600; color: #333; }
-        .user-status { font-size: 12px; display: flex; align-items: center; gap: 5px; }
-        .online-dot { width: 8px; height: 8px; background: #4cd964; border-radius: 50%; animation: pulse 1.5s infinite; }
-        .break-dot { width: 8px; height: 8px; background: #ffc107; border-radius: 50%; }
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0.5; transform: scale(1.2); } }
-
-        .study-timer {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .study-timer:hover { transform: scale(1.05); }
-
-        .location-select {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid #dee2e6;
-            background: white;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 0 5px;
-        }
-
-        .break-btn {
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            background: #ffc107;
-            color: #333;
-            transition: all 0.3s ease;
-        }
-
+        .online-dot { width: 8px; height: 8px; background: #4cd964; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        .break-dot { width: 8px; height: 8px; background: #ffc107; border-radius: 50%; display: inline-block; }
+        @keyframes pulse { 0% { opacity: 1; } 100% { opacity: 0.5; } }
+        .study-timer { background: linear-gradient(135deg, #667eea, #764ba2); padding: 10px 20px; border-radius: 30px; color: white; font-weight: 600; cursor: pointer; }
+        .location-select { padding: 8px 15px; border-radius: 20px; border: 1px solid #dee2e6; margin: 0 5px; }
+        .break-btn { border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; background: #ffc107; }
         .break-btn.active { background: #4cd964; color: white; }
-        .logout-header-btn { border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; background: #ff4757; color: white; }
-
+        .logout-header-btn { background: #ff4757; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
         .main-content { display: flex; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap; }
-        .group-monitor { flex: 1; min-width: 300px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .group-monitor h3 { margin-bottom: 20px; color: #333; border-left: 4px solid #667eea; padding-left: 12px; }
+        .group-monitor { flex: 1; min-width: 300px; background: white; border-radius: 15px; padding: 20px; }
+        .group-monitor h3 { margin-bottom: 20px; border-left: 4px solid #667eea; padding-left: 12px; }
         .location-group { margin-bottom: 25px; }
         .location-title { font-weight: 600; margin-bottom: 10px; padding: 8px; border-radius: 10px; }
         .location-title.college { background: #e3f2fd; color: #1976d2; }
@@ -121,12 +37,10 @@
         .user-list { display: flex; flex-wrap: wrap; gap: 10px; }
         .user-card { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #f8f9fa; border-radius: 30px; font-size: 13px; }
         .user-card img { width: 28px; height: 28px; border-radius: 50%; }
-        .user-card .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .user-card .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
         .user-card.online .status-dot { background: #4cd964; }
         .user-card.break .status-dot { background: #ffc107; }
-        .user-card.offline .status-dot { background: #adb5bd; }
-
-        .chat-panel { flex: 1; min-width: 350px; background: white; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .chat-panel { flex: 1; min-width: 350px; background: white; border-radius: 15px; display: flex; flex-direction: column; }
         .chat-header { padding: 15px 20px; border-bottom: 1px solid #e9ecef; font-weight: 600; }
         .chat-messages { flex: 1; height: 450px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .message { display: flex; gap: 10px; max-width: 80%; }
@@ -134,45 +48,32 @@
         .message-avatar { width: 32px; height: 32px; border-radius: 50%; }
         .message-bubble { background: #f1f3f5; padding: 10px 15px; border-radius: 18px; font-size: 14px; }
         .message.own .message-bubble { background: #667eea; color: white; }
-        .message-sender { font-size: 11px; color: #868e96; margin-bottom: 4px; }
         .chat-input-area { padding: 15px; border-top: 1px solid #e9ecef; display: flex; gap: 10px; }
         .chat-input-area input { flex: 1; padding: 12px; border: 1px solid #dee2e6; border-radius: 25px; outline: none; }
         .chat-input-area button { background: #667eea; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; }
-
-        .rating-achievements { flex: 0.7; min-width: 320px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .rating-achievements h3 { margin-bottom: 15px; color: #333; border-left: 4px solid #f5576c; padding-left: 12px; }
-        .rating-achievements h4 { margin: 15px 0 10px 0; color: #666; font-size: 14px; }
+        .rating-achievements { flex: 0.7; min-width: 320px; background: white; border-radius: 15px; padding: 20px; }
+        .rating-achievements h3 { margin-bottom: 15px; border-left: 4px solid #f5576c; padding-left: 12px; }
         .top-student { background: linear-gradient(135deg, #ffd700, #ff8c00); padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
-        .top-student .rank { font-size: 24px; font-weight: bold; }
-        .top-student .name { font-size: 16px; font-weight: bold; flex: 1; }
-        .top-student .points { font-size: 14px; }
-        .student-row { background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s; }
-        .student-row:hover { background: #e9ecef; }
+        .top-student .rank { font-size: 24px; }
+        .top-student .name { font-weight: bold; flex: 1; }
+        .student-row { background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
         .student-row .rank { width: 35px; font-weight: bold; color: #ffd700; }
-        .student-row .name { flex: 1; color: #333; font-size: 14px; }
-        .student-row .points { color: #f5576c; font-weight: bold; font-size: 13px; }
+        .student-row .name { flex: 1; }
+        .student-row .points { color: #f5576c; font-weight: bold; }
         .current-user-row { background: rgba(245,87,108,0.15); border-left: 3px solid #f5576c; }
-        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 10px; max-height: 350px; overflow-y: auto; }
-        .achievement { background: #f8f9fa; border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; max-height: 350px; overflow-y: auto; }
+        .achievement { background: #f8f9fa; border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 10px; }
         .achievement.locked { opacity: 0.5; filter: grayscale(0.3); }
         .achievement.unlocked { background: linear-gradient(135deg, rgba(0,255,0,0.1), rgba(0,200,0,0.05)); border-left: 3px solid #00ff00; }
         .achievement-icon { font-size: 28px; }
         .achievement-info { flex: 1; }
-        .achievement-name { font-weight: bold; font-size: 13px; color: #333; }
+        .achievement-name { font-weight: bold; font-size: 13px; }
         .achievement-desc { font-size: 10px; color: #888; }
-        .achievement-rarity { font-size: 9px; padding: 2px 6px; border-radius: 10px; display: inline-block; margin-top: 3px; }
-        .rarity-common { background: #6c757d; color: white; }
-        .rarity-rare { background: #007bff; color: white; }
-        .rarity-epic { background: #9b59b6; color: white; }
-        .rarity-legendary { background: #f39c12; color: white; }
         .personal-stats { background: #f0f2f5; border-radius: 12px; padding: 12px; margin-bottom: 15px; text-align: center; }
-        .personal-stats span { font-weight: bold; color: #667eea; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-content h3 { margin-bottom: 15px; }
         .close-modal { background: #ff4757; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; margin-top: 15px; }
-
-        @media (max-width: 900px) { .main-content { flex-direction: column; } .message { max-width: 90%; } }
+        @media (max-width: 900px) { .main-content { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -190,7 +91,7 @@
                 <img id="userAvatar" class="avatar">
                 <div class="user-details">
                     <span id="userName" class="user-name"></span>
-                    <div class="user-status" id="userStatusBlock">
+                    <div id="userStatusBlock">
                         <span class="online-dot" id="statusDot"></span>
                         <span id="statusText">Онлайн</span>
                     </div>
@@ -211,7 +112,7 @@
         <div class="main-content">
             <div class="group-monitor">
                 <h3>📊 Монитор группы</h3>
-                <div id="onlineUsers">
+                <div>
                     <h4>🟢 Онлайн — <span id="onlineCount">0</span></h4>
                     <div id="onlineList" class="user-list"></div>
                 </div>
@@ -227,8 +128,8 @@
                     <div class="location-title pc">🖥️ В ПК клубе</div>
                     <div id="locationPc" class="user-list"></div>
                 </div>
-                <div id="offlineUsers">
-                    <h4>⚫ Офлайн (всего в системе)</h4>
+                <div>
+                    <h4>⚫ Офлайн</h4>
                     <div id="offlineList" class="user-list"></div>
                 </div>
             </div>
@@ -237,19 +138,15 @@
                 <div class="chat-header">💬 Общий чат</div>
                 <div id="chatMessages" class="chat-messages"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="messageInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()">📤 Отправить</button>
+                    <input type="text" id="messageInput" placeholder="Сообщение...">
+                    <button id="sendMsgBtn">📤 Отправить</button>
                 </div>
             </div>
 
             <div class="rating-achievements">
                 <h3>🏆 Топ студентов</h3>
                 <div id="topStudentsList"></div>
-                
-                <div class="personal-stats" id="personalStats">
-                    <span>📊 Ваша статистика</span>
-                </div>
-                
+                <div class="personal-stats" id="personalStats">📊 Ваша статистика</div>
                 <h3>🎖️ Мои достижения</h3>
                 <div id="achievementsList" class="achievements-grid"></div>
             </div>
@@ -260,49 +157,45 @@
         <div class="modal-content">
             <h3>🏆 Полный рейтинг студентов</h3>
             <div id="fullRatingList"></div>
-            <button class="close-modal" onclick="document.getElementById('fullRatingModal').style.display='none'">Закрыть</button>
+            <button class="close-modal" onclick="closeModal()">Закрыть</button>
         </div>
     </div>
 
     <script>
-        const sb = window.supabase.createClient(
+        // Supabase
+        const supabase = window.supabase.createClient(
             'https://xwmckxrikcfalulwkhii.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
         );
 
+        // Данные
         let currentUser = null;
         let allUsers = [];
         let onlineUsers = new Map();
         let messages = [];
-        
         let totalSeconds = 0;
         let timerInterval = null;
         let isOnBreak = false;
         let currentLocation = 'В колледже';
-        
         let userMessagesCount = 0;
         let userMaxSessionDuration = 0;
         let userCurrentStreak = 1;
         let userTotalSessions = 0;
         let userUnlockedAchievements = [];
 
+        // Достижения
         const ACHIEVEMENTS = [
-            { id: 'first_blood', name: 'First Blood', desc: 'Первая учебная сессия', icon: '🩸', rarity: 'common', check: (u) => u.totalSessions >= 1 },
-            { id: 'double_kill', name: 'Double Kill', desc: '2 часа учебы подряд', icon: '⚔️', rarity: 'common', check: (u) => u.maxSessionDuration >= 7200 },
-            { id: 'triple_kill', name: 'Triple Kill', desc: '3 часа учебы подряд', icon: '🗡️', rarity: 'rare', check: (u) => u.maxSessionDuration >= 10800 },
-            { id: 'ultra_kill', name: 'Ultra Kill', desc: '4 часа учебы подряд', icon: '💀', rarity: 'epic', check: (u) => u.maxSessionDuration >= 14400 },
-            { id: 'rampage', name: 'Rampage', desc: '5 часов учебы подряд', icon: '🔥', rarity: 'epic', check: (u) => u.maxSessionDuration >= 18000 },
-            { id: 'early_bird', name: 'Ранняя пташка', desc: 'Начал учиться до 8:00', icon: '🌅', rarity: 'common', check: (u) => u.lastStartHour < 8 },
+            { id: 'first_blood', name: 'First Blood', desc: 'Первая сессия', icon: '🩸', rarity: 'common', check: (u) => u.totalSessions >= 1 },
+            { id: 'double_kill', name: 'Double Kill', desc: '2 часа подряд', icon: '⚔️', rarity: 'common', check: (u) => u.maxSessionDuration >= 7200 },
+            { id: 'triple_kill', name: 'Triple Kill', desc: '3 часа подряд', icon: '🗡️', rarity: 'rare', check: (u) => u.maxSessionDuration >= 10800 },
+            { id: 'early_bird', name: 'Ранняя пташка', desc: 'Начал до 8:00', icon: '🌅', rarity: 'common', check: (u) => u.lastStartHour < 8 },
             { id: 'night_owl', name: 'Ночная сова', desc: 'Учился после 23:00', icon: '🦉', rarity: 'common', check: (u) => u.lastStartHour >= 23 },
             { id: 'activist', name: 'Активист', desc: '20 сообщений', icon: '💬', rarity: 'common', check: (u) => u.messagesCount >= 20 },
             { id: 'social', name: 'Душа компании', desc: '50 сообщений', icon: '🦋', rarity: 'rare', check: (u) => u.messagesCount >= 50 },
-            { id: 'hardworker', name: 'Трудоголик', desc: '5 часов суммарно', icon: '💪', rarity: 'common', check: (u) => u.totalSeconds >= 18000 },
-            { id: 'student', name: 'Студент', desc: '20 часов суммарно', icon: '📖', rarity: 'rare', check: (u) => u.totalSeconds >= 72000 },
-            { id: 'academic', name: 'Академик', desc: '50 часов суммарно', icon: '🎓', rarity: 'epic', check: (u) => u.totalSeconds >= 180000 },
-            { id: 'legend', name: 'Легенда', desc: '100 часов суммарно', icon: '⭐', rarity: 'legendary', check: (u) => u.totalSeconds >= 360000 },
-            { id: 'streak_week', name: 'Первая неделя', desc: '7 дней подряд', icon: '📆', rarity: 'common', check: (u) => u.currentStreak >= 7 },
-            { id: 'streak_month', name: 'Месяц дисциплины', desc: '30 дней подряд', icon: '🏆', rarity: 'epic', check: (u) => u.currentStreak >= 30 },
-            { id: 'returner', name: 'Возвращение', desc: 'Вернулся после перерыва', icon: '🔄', rarity: 'common', check: (u) => u.returnedAfterBreak === true }
+            { id: 'hardworker', name: 'Трудоголик', desc: '5 часов всего', icon: '💪', rarity: 'common', check: (u) => u.totalSeconds >= 18000 },
+            { id: 'student', name: 'Студент', desc: '20 часов всего', icon: '📖', rarity: 'rare', check: (u) => u.totalSeconds >= 72000 },
+            { id: 'legend', name: 'Легенда', desc: '100 часов всего', icon: '⭐', rarity: 'legendary', check: (u) => u.totalSeconds >= 360000 },
+            { id: 'streak_week', name: 'Первая неделя', desc: '7 дней подряд', icon: '📆', rarity: 'common', check: (u) => u.currentStreak >= 7 }
         ];
 
         function calculatePoints(userData) {
@@ -310,56 +203,16 @@
         }
 
         function getTitle(points) {
-            if (points >= 3000) return { name: 'Immortal', color: '#ff4757' };
-            if (points >= 2500) return { name: 'Divine', color: '#ffa502' };
-            if (points >= 2000) return { name: 'Ancient', color: '#eccc68' };
-            if (points >= 1500) return { name: 'Legend', color: '#2ed573' };
-            if (points >= 1000) return { name: 'Archon', color: '#1e90ff' };
-            if (points >= 500) return { name: 'Crusader', color: '#a4b0be' };
-            return { name: 'Herald', color: '#747d8c' };
-        }
-
-        function getRarityClass(rarity) {
-            switch(rarity) {
-                case 'common': return 'rarity-common';
-                case 'rare': return 'rarity-rare';
-                case 'epic': return 'rarity-epic';
-                case 'legendary': return 'rarity-legendary';
-                default: return 'rarity-common';
-            }
-        }
-
-        function updateAchievements(userStats) {
-            const newUnlocked = [];
-            for (const ach of ACHIEVEMENTS) {
-                if (ach.check(userStats) && !userUnlockedAchievements.includes(ach.id)) {
-                    newUnlocked.push(ach.id);
-                    showAchievementToast(ach);
-                }
-            }
-            userUnlockedAchievements = [...new Set([...userUnlockedAchievements, ...newUnlocked])];
-            localStorage.setItem(`achievements_${currentUser?.id}`, JSON.stringify(userUnlockedAchievements));
-            renderAchievements();
-        }
-
-        function showAchievementToast(ach) {
-            const toast = document.createElement('div');
-            toast.style.position = 'fixed';
-            toast.style.bottom = '20px';
-            toast.style.right = '20px';
-            toast.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-            toast.style.color = 'white';
-            toast.style.padding = '15px 20px';
-            toast.style.borderRadius = '15px';
-            toast.style.zIndex = '1000';
-            toast.style.animation = 'slideIn 0.3s ease';
-            toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><span style="font-size:30px;">${ach.icon}</span><div><strong>🏆 Новое достижение!</strong><br>${ach.name} - ${ach.desc}</div></div>`;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
+            if (points >= 3000) return 'Immortal';
+            if (points >= 2500) return 'Divine';
+            if (points >= 2000) return 'Ancient';
+            if (points >= 1500) return 'Legend';
+            if (points >= 1000) return 'Archon';
+            if (points >= 500) return 'Crusader';
+            return 'Herald';
         }
 
         function renderTopStudents() {
-            // Собираем данные со всех пользователей
             const allUsersData = allUsers.map(u => ({
                 id: u.id,
                 name: u.full_name,
@@ -368,7 +221,6 @@
                 currentStreak: u.currentStreak || 1
             }));
             
-            // Добавляем текущего пользователя, если его нет в allUsers
             if (currentUser && !allUsersData.find(u => u.id === currentUser.id)) {
                 allUsersData.push({
                     id: currentUser.id,
@@ -382,11 +234,7 @@
             const ranking = allUsersData.map(u => ({
                 ...u,
                 points: calculatePoints(u)
-            })).sort((a, b) => {
-                if (b.points !== a.points) return b.points - a.points;
-                // Если очки равны, сортируем по времени учебы
-                return b.totalSeconds - a.totalSeconds;
-            });
+            })).sort((a, b) => b.points - a.points || b.totalSeconds - a.totalSeconds);
             
             const top3 = ranking.slice(0, 3);
             const topList = document.getElementById('topStudentsList');
@@ -398,11 +246,6 @@
                         <div class="points">🏆 ${s.points} pts</div>
                     </div>
                 `).join('');
-                if (top3.length < 3) {
-                    for (let i = top3.length; i < 3; i++) {
-                        topList.innerHTML += `<div class="top-student" style="opacity:0.5;"><div class="rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</div><div class="name">---</div><div class="points">0 pts</div></div>`;
-                    }
-                }
             }
             
             const fullList = document.getElementById('fullRatingList');
@@ -417,37 +260,34 @@
             }
             
             const currentRank = ranking.findIndex(s => s.id === currentUser?.id) + 1;
-            const currentPoints = calculatePoints({ totalSeconds, messagesCount: userMessagesCount, currentStreak: userCurrentStreak });
-            const title = getTitle(currentPoints);
             const personalStatsDiv = document.getElementById('personalStats');
             if (personalStatsDiv && currentUser) {
-                personalStatsDiv.innerHTML = `<span>📊 Ваша статистика</span><br>
-                    🏆 Место: #${currentRank} | ${title.name}<br>
-                    ⏱️ Учеба: ${Math.floor(totalSeconds / 3600)}ч ${Math.floor((totalSeconds % 3600) / 60)}мин<br>
-                    💬 Сообщений: ${userMessagesCount}<br>
-                    🔥 Стрик: ${userCurrentStreak} дней<br>
-                    <span style="font-size:11px; display:block; margin-top:5px;">⭐ ${currentPoints} очков рейтинга</span>`;
-            }
-            
-            const timerSpan = document.getElementById('studyTimer');
-            if (timerSpan) {
-                timerSpan.onclick = () => document.getElementById('fullRatingModal').style.display = 'flex';
+                personalStatsDiv.innerHTML = `📊 Ваша статистика<br>🏆 Место: #${currentRank} | ${getTitle(calculatePoints({totalSeconds, messagesCount: userMessagesCount, currentStreak: userCurrentStreak}))}<br>⏱️ Учеба: ${Math.floor(totalSeconds / 3600)}ч<br>💬 Сообщений: ${userMessagesCount}<br>🔥 Стрик: ${userCurrentStreak} дней`;
             }
         }
-        
+
         function renderAchievements() {
             const container = document.getElementById('achievementsList');
             if (!container) return;
+            
             const userStats = {
-                totalSeconds: totalSeconds,
-                messagesCount: userMessagesCount,
-                maxSessionDuration: userMaxSessionDuration,
-                currentStreak: userCurrentStreak,
-                totalSessions: userTotalSessions,
-                lastStartHour: new Date().getHours(),
-                returnedAfterBreak: false
+                totalSeconds, messagesCount: userMessagesCount, maxSessionDuration: userMaxSessionDuration,
+                currentStreak: userCurrentStreak, totalSessions: userTotalSessions, lastStartHour: new Date().getHours()
             };
-            updateAchievements(userStats);
+            
+            // Проверяем новые достижения
+            ACHIEVEMENTS.forEach(ach => {
+                if (ach.check(userStats) && !userUnlockedAchievements.includes(ach.id)) {
+                    userUnlockedAchievements.push(ach.id);
+                    localStorage.setItem(`achievements_${currentUser?.id}`, JSON.stringify(userUnlockedAchievements));
+                    // Показываем уведомление
+                    const toast = document.createElement('div');
+                    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:15px;border-radius:15px;z-index:1000';
+                    toast.innerHTML = `<strong>🏆 Новое достижение!</strong><br>${ach.name} - ${ach.desc}`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                }
+            });
             
             container.innerHTML = ACHIEVEMENTS.map(ach => {
                 const isUnlocked = userUnlockedAchievements.includes(ach.id);
@@ -457,12 +297,23 @@
                         <div class="achievement-info">
                             <div class="achievement-name">${ach.name}</div>
                             <div class="achievement-desc">${ach.desc}</div>
-                            <span class="achievement-rarity ${getRarityClass(ach.rarity)}">${ach.rarity}</span>
                         </div>
-                        <div style="font-size:18px;">${isUnlocked ? '✅' : '🔒'}</div>
+                        <div>${isUnlocked ? '✅' : '🔒'}</div>
                     </div>
                 `;
             }).join('');
+        }
+
+        function saveUserData() {
+            if (!currentUser) return;
+            const data = { totalSeconds, messagesCount: userMessagesCount, userMaxSessionDuration, userCurrentStreak, userTotalSessions, userUnlockedAchievements };
+            localStorage.setItem(`userData_${currentUser.id}`, JSON.stringify(data));
+            const userIndex = allUsers.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                allUsers[userIndex].studySeconds = totalSeconds;
+                allUsers[userIndex].messagesCount = userMessagesCount;
+                saveUsers();
+            }
         }
 
         function loadUserData() {
@@ -479,32 +330,6 @@
             const storedAchievements = localStorage.getItem(`achievements_${currentUser?.id}`);
             if (storedAchievements) userUnlockedAchievements = JSON.parse(storedAchievements);
             updateTimerDisplay();
-            renderTopStudents();
-            renderAchievements();
-        }
-        
-        function saveUserData() {
-            if (!currentUser) return;
-            const data = {
-                totalSeconds, messagesCount: userMessagesCount, userMaxSessionDuration,
-                userCurrentStreak, userTotalSessions,
-                userUnlockedAchievements
-            };
-            localStorage.setItem(`userData_${currentUser.id}`, JSON.stringify(data));
-            const userIndex = allUsers.findIndex(u => u.id === currentUser.id);
-            if (userIndex !== -1) {
-                allUsers[userIndex].studySeconds = totalSeconds;
-                allUsers[userIndex].messagesCount = userMessagesCount;
-                allUsers[userIndex].currentStreak = userCurrentStreak;
-                saveUsers();
-            }
-        }
-
-        function onMessageSent() {
-            userMessagesCount++;
-            saveUserData();
-            renderTopStudents();
-            renderAchievements();
         }
 
         function updateTimerDisplay() {
@@ -527,10 +352,7 @@
             }, 1000);
         }
 
-        function stopTimer() {
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        }
-
+        // Работа с пользователями
         function loadLocalData() {
             const savedUsers = localStorage.getItem('all_users');
             if (savedUsers) allUsers = JSON.parse(savedUsers);
@@ -543,22 +365,17 @@
 
         function addOrUpdateUser(user) {
             const existingIndex = allUsers.findIndex(u => u.id === user.id);
-            if (existingIndex !== -1) { 
-                allUsers[existingIndex] = { ...allUsers[existingIndex], ...user }; 
-            } else { 
-                allUsers.push(user); 
-            }
+            if (existingIndex !== -1) allUsers[existingIndex] = { ...allUsers[existingIndex], ...user };
+            else allUsers.push(user);
             saveUsers();
             renderTopStudents();
         }
 
         function updateOnlineStatus() {
-            const now = new Date().getTime();
+            const now = Date.now();
             onlineUsers.clear();
             allUsers.forEach(user => {
-                if (user.lastSeen && (now - user.lastSeen) < 60000) { // 60 секунд
-                    onlineUsers.set(user.id, user);
-                }
+                if (user.lastSeen && (now - user.lastSeen) < 60000) onlineUsers.set(user.id, user);
             });
             if (currentUser) {
                 currentUser.lastSeen = now;
@@ -566,7 +383,6 @@
                 currentUser.onBreak = isOnBreak;
                 currentUser.studySeconds = totalSeconds;
                 currentUser.messagesCount = userMessagesCount;
-                currentUser.currentStreak = userCurrentStreak;
                 addOrUpdateUser(currentUser);
                 onlineUsers.set(currentUser.id, currentUser);
             }
@@ -574,37 +390,31 @@
         }
 
         function renderUserLists() {
-            const onlineList = document.getElementById('onlineList');
-            const locationCollege = document.getElementById('locationCollege');
-            const locationCoffee = document.getElementById('locationCoffee');
-            const locationPc = document.getElementById('locationPc');
-            const offlineList = document.getElementById('offlineList');
-            const onlineCount = document.getElementById('onlineCount');
-            
             const onlineArr = Array.from(onlineUsers.values());
             const offlineArr = allUsers.filter(u => !onlineUsers.has(u.id));
             
-            onlineCount.textContent = onlineArr.length;
-            onlineList.innerHTML = onlineArr.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''} ${u.onBreak ? '☕' : ''}</span></div>`).join('');
-            
-            const collegeUsers = onlineArr.filter(u => u.location === 'В колледже');
-            const coffeeUsers = onlineArr.filter(u => u.location === 'В кофе');
-            const pcUsers = onlineArr.filter(u => u.location === 'В ПК клубе');
-            
-            locationCollege.innerHTML = collegeUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
-            locationCoffee.innerHTML = coffeeUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
-            locationPc.innerHTML = pcUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
-            offlineList.innerHTML = offlineArr.map(u => `<div class="user-card offline"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>`).join('');
+            document.getElementById('onlineCount').textContent = onlineArr.length;
+            document.getElementById('onlineList').innerHTML = onlineArr.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''}</span></div>`).join('');
+            document.getElementById('locationCollege').innerHTML = onlineArr.filter(u => u.location === 'В колледже').map(u => `<div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>`).join('');
+            document.getElementById('locationCoffee').innerHTML = onlineArr.filter(u => u.location === 'В кофе').map(u => `<div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>`).join('');
+            document.getElementById('locationPc').innerHTML = onlineArr.filter(u => u.location === 'В ПК клубе').map(u => `<div class="user-card online"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>`).join('');
+            document.getElementById('offlineList').innerHTML = offlineArr.map(u => `<div class="user-card offline"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name}</span></div>`).join('');
         }
 
         function renderMessages() {
             const container = document.getElementById('chatMessages');
             if (!container) return;
-            container.innerHTML = messages.slice(-50).map(msg => `<div class="message ${msg.user_id === currentUser?.id ? 'own' : ''}"><img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}"><div><div class="message-sender">${msg.user_name}</div><div class="message-bubble">${escapeHtml(msg.text)}</div></div></div>`).join('');
+            container.innerHTML = messages.slice(-50).map(msg => `
+                <div class="message ${msg.user_id === currentUser?.id ? 'own' : ''}">
+                    <img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}">
+                    <div>
+                        <div class="message-sender">${msg.user_name}</div>
+                        <div class="message-bubble">${msg.text}</div>
+                    </div>
+                </div>
+            `).join('');
             container.scrollTop = container.scrollHeight;
         }
-
-        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -615,73 +425,61 @@
             saveMessages();
             renderMessages();
             input.value = '';
-            onMessageSent();
+            userMessagesCount++;
+            saveUserData();
+            renderTopStudents();
+            renderAchievements();
         }
-        window.sendMessage = sendMessage;
 
-        function startHeartbeat() {
-            setInterval(() => {
-                if (currentUser) {
-                    currentUser.lastSeen = new Date().getTime();
-                    currentUser.location = currentLocation;
-                    currentUser.onBreak = isOnBreak;
-                    addOrUpdateUser(currentUser);
-                    updateOnlineStatus();
-                }
-            }, 10000);
+        function closeModal() {
+            document.getElementById('fullRatingModal').style.display = 'none';
         }
 
         async function initApp(user) {
             currentUser = {
-                id: user.id,
-                email: user.email,
+                id: user.id, email: user.email,
                 full_name: user.user_metadata?.full_name || user.email.split('@')[0],
                 avatar_url: user.user_metadata?.avatar_url,
-                lastSeen: new Date().getTime(),
-                location: 'В колледже',
-                onBreak: false
+                lastSeen: Date.now(), location: 'В колледже', onBreak: false
             };
             
             document.getElementById('userName').textContent = currentUser.full_name;
-            const avatarImg = document.getElementById('userAvatar');
-            avatarImg.src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name)}&background=667eea&color=fff`;
+            document.getElementById('userAvatar').src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name)}&background=667eea&color=fff`;
             
             addOrUpdateUser(currentUser);
             loadUserData();
             updateOnlineStatus();
             updateTimerDisplay();
             startTimer();
-            
             userTotalSessions++;
             saveUserData();
             
             document.getElementById('locationSelect').value = currentLocation;
             document.getElementById('locationSelect').onchange = (e) => {
                 currentLocation = e.target.value;
-                if (currentUser) { currentUser.location = currentLocation; addOrUpdateUser(currentUser); updateOnlineStatus(); }
+                if (currentUser) updateOnlineStatus();
             };
             
-            const breakBtn = document.getElementById('breakBtn');
-            breakBtn.onclick = () => {
-                if (isOnBreak) {
-                    isOnBreak = false;
-                    breakBtn.textContent = '⏸ Перерыв';
-                    breakBtn.classList.remove('active');
-                    document.getElementById('statusDot').className = 'online-dot';
-                    document.getElementById('statusText').textContent = 'Онлайн';
-                } else {
-                    isOnBreak = true;
-                    breakBtn.textContent = '▶ Вернуться';
-                    breakBtn.classList.add('active');
-                    document.getElementById('statusDot').className = 'break-dot';
-                    document.getElementById('statusText').textContent = 'На перерыве';
-                }
-                if (currentUser) { currentUser.onBreak = isOnBreak; addOrUpdateUser(currentUser); updateOnlineStatus(); }
+            document.getElementById('breakBtn').onclick = () => {
+                isOnBreak = !isOnBreak;
+                const btn = document.getElementById('breakBtn');
+                btn.textContent = isOnBreak ? '▶ Вернуться' : '⏸ Перерыв';
+                btn.classList.toggle('active', isOnBreak);
+                document.getElementById('statusDot').className = isOnBreak ? 'break-dot' : 'online-dot';
+                document.getElementById('statusText').textContent = isOnBreak ? 'На перерыве' : 'Онлайн';
+                if (currentUser) updateOnlineStatus();
             };
+            
+            document.getElementById('logoutBtn').onclick = () => {
+                supabase.auth.signOut().then(() => { if (timerInterval) clearInterval(timerInterval); location.reload(); });
+            };
+            
+            document.getElementById('sendMsgBtn').onclick = sendMessage;
+            document.getElementById('messageInput').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+            document.getElementById('studyTimer').onclick = () => document.getElementById('fullRatingModal').style.display = 'flex';
             
             renderMessages();
-            startHeartbeat();
-            setInterval(() => updateOnlineStatus(), 5000);
+            setInterval(() => updateOnlineStatus(), 10000);
             setInterval(() => {
                 if (!isOnBreak && userMaxSessionDuration < totalSeconds % 86400) {
                     userMaxSessionDuration = totalSeconds % 86400;
@@ -695,16 +493,12 @@
         }
 
         document.getElementById('loginBtn').onclick = () => {
-            sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+            supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
         };
-
-        document.getElementById('logoutBtn')?.addEventListener('click', () => {
-            sb.auth.signOut().then(() => { stopTimer(); location.reload(); });
-        });
 
         async function checkSession() {
             loadLocalData();
-            const { data } = await sb.auth.getSession();
+            const { data } = await supabase.auth.getSession();
             if (data.session) {
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
@@ -715,9 +509,9 @@
             }
         }
 
-        sb.auth.onAuthStateChange((event) => {
+        supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_IN') checkSession();
-            if (event === 'SIGNED_OUT') { document.getElementById('loginContainer').style.display = 'flex'; document.getElementById('mainApp').style.display = 'none'; }
+            if (event === 'SIGNED_OUT') location.reload();
         });
         
         checkSession();
