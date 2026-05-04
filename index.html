@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Монитор группы - Turan Education</title>
+    <title>Топ студентов - Система достижений</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -11,706 +11,450 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
+            padding: 20px;
         }
-
-        .login-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-
-        .login-box {
-            background: white;
+        /* Профиль */
+        .profile-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 50px 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
+            padding: 25px;
+            margin-bottom: 25px;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-
-        .login-box h1 {
-            color: #333;
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .profile-info h2 {
             font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .profile-info p {
+            color: #aaa;
+        }
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f5576c;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        /* Рейтинг */
+        .rating-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .rating-card h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .top-student {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .top-student .rank {
+            font-size: 30px;
+            font-weight: bold;
+        }
+        .top-student .name {
+            font-size: 20px;
+            font-weight: bold;
+            flex: 1;
+        }
+        .top-student .points {
+            font-size: 18px;
+        }
+        .student-row {
+            background: rgba(0,0,0,0.3);
+            padding: 12px 15px;
+            border-radius: 10px;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-
-        .login-box .subtitle {
-            color: #666;
+        .student-row .rank {
+            width: 40px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .student-row .name {
+            flex: 1;
+            color: white;
+        }
+        .student-row .points {
+            color: #f5576c;
+            font-weight: bold;
+        }
+        .current-user {
+            background: rgba(245,87,108,0.3);
+            border: 1px solid #f5576c;
+        }
+        /* Достижения */
+        .achievements-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .achievement {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.2s;
+        }
+        .achievement.locked {
+            opacity: 0.5;
+            filter: grayscale(0.3);
+        }
+        .achievement.unlocked {
+            background: linear-gradient(135deg, rgba(0,255,0,0.2), rgba(0,200,0,0.1));
+            border-left: 4px solid #00ff00;
+        }
+        .achievement-icon {
+            font-size: 32px;
+        }
+        .achievement-info {
+            flex: 1;
+        }
+        .achievement-name {
+            font-weight: bold;
+            color: white;
             font-size: 14px;
-            margin-bottom: 30px;
         }
-
-        .google-btn {
+        .achievement-desc {
+            font-size: 11px;
+            color: #aaa;
+        }
+        .achievement-rarity {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        .rarity-common { background: #6c757d; }
+        .rarity-rare { background: #007bff; }
+        .rarity-epic { background: #9b59b6; }
+        .rarity-legendary { background: #f39c12; }
+        /* Кнопка выхода */
+        .logout-btn {
+            background: #dc3545;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        .login-container {
+            text-align: center;
+            padding: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
+        .login-btn {
             background: #4285f4;
             color: white;
             border: none;
-            padding: 14px 35px;
-            font-size: 16px;
-            font-weight: 500;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .google-btn:hover {
-            background: #357ae8;
-            transform: translateY(-2px);
-        }
-
-        .main-app {
-            display: none;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .user-status {
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .online-dot {
-            width: 8px;
-            height: 8px;
-            background: #4cd964;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        .break-dot {
-            width: 8px;
-            height: 8px;
-            background: #ffc107;
-            border-radius: 50%;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        .study-timer {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: white;
-            font-weight: 600;
-        }
-
-        .location-select {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid #dee2e6;
-            background: white;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 0 5px;
-        }
-
-        .break-btn {
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            background: #ffc107;
-            color: #333;
-            transition: all 0.3s ease;
-        }
-
-        .break-btn.active {
-            background: #4cd964;
-            color: white;
-        }
-
-        .logout-header-btn {
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            background: #ff4757;
-            color: white;
-        }
-
-        .main-content {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-            flex-wrap: wrap;
-        }
-
-        .group-monitor {
-            flex: 1;
-            min-width: 300px;
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .group-monitor h3 {
-            margin-bottom: 20px;
-            color: #333;
-            border-left: 4px solid #667eea;
-            padding-left: 12px;
-        }
-
-        .location-group {
-            margin-bottom: 25px;
-        }
-
-        .location-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            padding: 8px;
+            padding: 15px 40px;
+            font-size: 18px;
             border-radius: 10px;
-        }
-
-        .location-title.college { background: #e3f2fd; color: #1976d2; }
-        .location-title.coffee { background: #fff3e0; color: #f57c00; }
-        .location-title.pc { background: #e8f5e9; color: #388e3c; }
-
-        .user-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .user-card {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: #f8f9fa;
-            border-radius: 30px;
-            font-size: 13px;
-        }
-
-        .user-card img {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-        }
-
-        .user-card .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .user-card.online .status-dot { background: #4cd964; }
-        .user-card.break .status-dot { background: #ffc107; }
-        .user-card.offline .status-dot { background: #adb5bd; }
-
-        .chat-panel {
-            flex: 1;
-            min-width: 350px;
-            background: white;
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .chat-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
-            font-weight: 600;
-        }
-
-        .chat-messages {
-            flex: 1;
-            height: 450px;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .message {
-            display: flex;
-            gap: 10px;
-            max-width: 80%;
-        }
-
-        .message.own {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-        }
-
-        .message-bubble {
-            background: #f1f3f5;
-            padding: 10px 15px;
-            border-radius: 18px;
-            font-size: 14px;
-        }
-
-        .message.own .message-bubble {
-            background: #667eea;
-            color: white;
-        }
-
-        .message-sender {
-            font-size: 11px;
-            color: #868e96;
-            margin-bottom: 4px;
-        }
-
-        .chat-input-area {
-            padding: 15px;
-            border-top: 1px solid #e9ecef;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #dee2e6;
-            border-radius: 25px;
-            outline: none;
-        }
-
-        .chat-input-area button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
             cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .main-content { flex-direction: column; }
-            .message { max-width: 90%; }
         }
     </style>
 </head>
 <body>
-    <div id="loginContainer" class="login-container">
-        <div class="login-box">
-            <h1>🔐 Вход через Google</h1>
-            <div class="subtitle">Войдите в свой аккаунт, чтобы продолжить</div>
-            <button class="google-btn" id="loginBtn">G Войти через Google</button>
-        </div>
-    </div>
-
-    <div id="mainApp" class="main-app">
-        <div class="header">
-            <div class="user-info">
-                <img id="userAvatar" class="avatar">
-                <div class="user-details">
-                    <span id="userName" class="user-name"></span>
-                    <div class="user-status" id="userStatusBlock">
-                        <span class="online-dot" id="statusDot"></span>
-                        <span id="statusText">Онлайн</span>
-                    </div>
-                </div>
-                <span id="studyTimer" class="study-timer">0 ч 0 мин</span>
-            </div>
-            <div>
-                <select id="locationSelect" class="location-select">
-                    <option value="В колледже">🏫 В колледже</option>
-                    <option value="В кофе">☕ В кофе</option>
-                    <option value="В ПК клубе">🖥️ В ПК клубе</option>
-                </select>
-                <button id="breakBtn" class="break-btn">⏸ Перерыв</button>
-                <button id="logoutBtn" class="logout-header-btn">🚪 Выход</button>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <div class="group-monitor">
-                <h3>📊 Монитор группы</h3>
-                <div id="onlineUsers">
-                    <h4>🟢 Онлайн — <span id="onlineCount">0</span></h4>
-                    <div id="onlineList" class="user-list"></div>
-                </div>
-                
-                <div class="location-group">
-                    <div class="location-title college">🏫 В колледже</div>
-                    <div id="locationCollege" class="user-list"></div>
-                </div>
-                
-                <div class="location-group">
-                    <div class="location-title coffee">☕ В кофе</div>
-                    <div id="locationCoffee" class="user-list"></div>
-                </div>
-                
-                <div class="location-group">
-                    <div class="location-title pc">🖥️ В ПК клубе</div>
-                    <div id="locationPc" class="user-list"></div>
-                </div>
-                
-                <div id="offlineUsers">
-                    <h4>⚫ Офлайн (всего в системе)</h4>
-                    <div id="offlineList" class="user-list"></div>
-                </div>
-            </div>
-
-            <div class="chat-panel">
-                <div class="chat-header">💬 Общий чат</div>
-                <div id="chatMessages" class="chat-messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="messageInput" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()">📤 Отправить</button>
-                </div>
-            </div>
-        </div>
+    <div class="container" id="app">
+        <div id="content"></div>
     </div>
 
     <script>
-        const sb = window.supabase.createClient(
-            'https://xwmckxrikcfalulwkhii.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
-        );
-
-        let currentUser = null;
-        let allUsers = [];
-        let onlineUsers = new Map();
-        let messages = [];
+        // Supabase настройки
+        const SUPABASE_URL = 'https://xwmckxrikcfalulwkhii.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
         
-        let studyStartTime = null;
-        let studyInterval = null;
-        let isOnBreak = false;
-        let totalBreakSeconds = 0;
-        let breakStartTime = null;
-        let currentLocation = 'В колледже';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function loadLocalData() {
-            const savedUsers = localStorage.getItem('all_users');
-            if (savedUsers) allUsers = JSON.parse(savedUsers);
-            const savedMessages = localStorage.getItem('chat_messages');
-            if (savedMessages) messages = JSON.parse(savedMessages);
+        // ========== СИСТЕМА ДОСТИЖЕНИЙ ==========
+        const ACHIEVEMENTS = [
+            { id: 'first_study', name: 'Первый шаг', desc: 'Провел первую учебную сессию', icon: '🎓', rarity: 'common', check: (user) => user.total_sessions >= 1 },
+            { id: 'early_bird', name: 'Ранняя пташка', desc: 'Начал учиться до 8:00', icon: '🌅', rarity: 'common', check: (user) => user.last_start_time < 8 },
+            { id: 'night_owl', name: 'Ночная сова', desc: 'Учился после 23:00', icon: '🦉', rarity: 'common', check: (user) => user.last_start_time >= 23 },
+            { id: 'marathoner_2h', name: 'Марафонец', desc: 'Проучился 2 часа подряд', icon: '🏃', rarity: 'rare', check: (user) => user.max_session_duration >= 7200 },
+            { id: 'marathoner_3h', name: 'Железный студент', desc: 'Проучился 3 часа подряд', icon: '🦾', rarity: 'rare', check: (user) => user.max_session_duration >= 10800 },
+            { id: 'marathoner_5h', name: 'Бессмертный', desc: 'Проучился 5 часов подряд', icon: '👑', rarity: 'epic', check: (user) => user.max_session_duration >= 18000 },
+            { id: 'activist_20', name: 'Активист', desc: 'Написал 20 сообщений', icon: '💬', rarity: 'common', check: (user) => user.messages_count >= 20 },
+            { id: 'activist_50', name: 'Душа компании', desc: 'Написал 50 сообщений', icon: '🦋', rarity: 'rare', check: (user) => user.messages_count >= 50 },
+            { id: 'activist_100', name: 'Оратор', desc: 'Написал 100 сообщений', icon: '🎙️', rarity: 'epic', check: (user) => user.messages_count >= 100 },
+            { id: 'total_5h', name: 'Трудоголик', desc: 'Накопил 5 часов учебы', icon: '💪', rarity: 'common', check: (user) => user.total_study_time >= 18000 },
+            { id: 'total_20h', name: 'Дедикация', desc: 'Накопил 20 часов учебы', icon: '📖', rarity: 'rare', check: (user) => user.total_study_time >= 72000 },
+            { id: 'total_50h', name: 'Академик', desc: 'Накопил 50 часов учебы', icon: '🎓', rarity: 'epic', check: (user) => user.total_study_time >= 180000 },
+            { id: 'total_100h', name: 'Легенда', desc: 'Накопил 100 часов учебы', icon: '⭐', rarity: 'legendary', check: (user) => user.total_study_time >= 360000 },
+            { id: 'streak_7', name: 'Первая неделя', desc: 'Учился 7 дней подряд', icon: '📆', rarity: 'common', check: (user) => user.current_streak >= 7 },
+            { id: 'streak_30', name: 'Месяц дисциплины', desc: 'Учился 30 дней подряд', icon: '🏆', rarity: 'epic', check: (user) => user.current_streak >= 30 },
+            { id: 'streak_100', name: 'Стальной', desc: 'Учился 100 дней подряд', icon: '⚙️', rarity: 'legendary', check: (user) => user.current_streak >= 100 },
+            { id: 'returner', name: 'Возвращение', desc: 'Вернулся после перерыва', icon: '🔄', rarity: 'common', check: (user) => user.returned_after_break === true }
+        ];
+
+        // ========== СТУДЕНТЫ (ДАННЫЕ) ==========
+        let students = [
+            { id: 1, name: 'Алмас', email: 'almas@example.com', total_study_time: 125000, total_sessions: 45, max_session_duration: 10800, last_start_time: 7, messages_count: 85, current_streak: 12, returned_after_break: false },
+            { id: 2, name: 'Ержан', email: 'erzhan@example.com', total_study_time: 250000, total_sessions: 78, max_session_duration: 18000, last_start_time: 23, messages_count: 150, current_streak: 25, returned_after_break: false },
+            { id: 3, name: 'Данияр', email: 'daniyar@example.com', total_study_time: 50000, total_sessions: 20, max_session_duration: 5400, last_start_time: 6, messages_count: 15, current_streak: 3, returned_after_break: true },
+            { id: 4, name: 'Аружан', email: 'aruzhan@example.com', total_study_time: 380000, total_sessions: 120, max_session_duration: 21600, last_start_time: 8, messages_count: 250, current_streak: 45, returned_after_break: false },
+            { id: 5, name: 'Мирас', email: 'miras@example.com', total_study_time: 75000, total_sessions: 30, max_session_duration: 7200, last_start_time: 22, messages_count: 40, current_streak: 8, returned_after_break: false }
+        ];
+
+        // Функция подсчета очков рейтинга
+        function calculatePoints(student) {
+            return Math.floor(student.total_study_time / 3600) * 10 + 
+                   student.messages_count * 2 + 
+                   student.current_streak * 5;
         }
 
-        function saveUsers() {
-            localStorage.setItem('all_users', JSON.stringify(allUsers));
+        // Функция получения достижений для студента
+        function getUnlockedAchievements(student) {
+            return ACHIEVEMENTS.filter(ach => ach.check(student)).map(ach => ach.id);
         }
 
-        function saveMessages() {
-            localStorage.setItem('chat_messages', JSON.stringify(messages.slice(-100)));
+        // Функция получения рейтинга
+        function getRanking() {
+            return students.map(s => ({
+                ...s,
+                points: calculatePoints(s)
+            })).sort((a, b) => b.points - a.points);
         }
 
-        function addOrUpdateUser(user) {
-            const existingIndex = allUsers.findIndex(u => u.id === user.id);
-            if (existingIndex !== -1) {
-                allUsers[existingIndex] = { ...allUsers[existingIndex], ...user };
-            } else {
-                allUsers.push(user);
+        // Получить звание по очкам
+        function getTitle(points) {
+            if (points >= 3000) return { name: 'Immortal', color: '#ff4757' };
+            if (points >= 2500) return { name: 'Divine', color: '#ffa502' };
+            if (points >= 2000) return { name: 'Ancient', color: '#eccc68' };
+            if (points >= 1500) return { name: 'Legend', color: '#2ed573' };
+            if (points >= 1000) return { name: 'Archon', color: '#1e90ff' };
+            if (points >= 500) return { name: 'Crusader', color: '#a4b0be' };
+            return { name: 'Herald', color: '#747d8c' };
+        }
+
+        // Получить rarity class
+        function getRarityClass(rarity) {
+            switch(rarity) {
+                case 'common': return 'rarity-common';
+                case 'rare': return 'rarity-rare';
+                case 'epic': return 'rarity-epic';
+                case 'legendary': return 'rarity-legendary';
+                default: return 'rarity-common';
             }
-            saveUsers();
         }
 
-        function updateOnlineStatus() {
-            const now = new Date().getTime();
-            onlineUsers.clear();
+        // Рендер страницы
+        function renderApp(user, userStudentData) {
+            const content = document.getElementById('content');
             
-            allUsers.forEach(user => {
-                if (user.lastSeen && (now - user.lastSeen) < 120000) {
-                    onlineUsers.set(user.id, user);
-                }
-            });
-            
-            if (currentUser && !onlineUsers.has(currentUser.id)) {
-                currentUser.lastSeen = now;
-                currentUser.location = currentLocation;
-                currentUser.onBreak = isOnBreak;
-                onlineUsers.set(currentUser.id, currentUser);
-                addOrUpdateUser(currentUser);
-            } else if (currentUser) {
-                const updatedUser = onlineUsers.get(currentUser.id);
-                if (updatedUser) {
-                    updatedUser.onBreak = isOnBreak;
-                    updatedUser.location = currentLocation;
-                    onlineUsers.set(currentUser.id, updatedUser);
-                }
+            if (!user) {
+                content.innerHTML = `
+                    <div class="login-container">
+                        <h1 style="color:white;">🎓 Топ студентов</h1>
+                        <p style="color:#aaa; margin:20px 0;">Войдите чтобы увидеть свой рейтинг и достижения</p>
+                        <button class="login-btn" id="googleLoginBtn">Войти через Google</button>
+                    </div>
+                `;
+                document.getElementById('googleLoginBtn')?.addEventListener('click', () => {
+                    supabase.auth.signInWithOAuth({ provider: 'google' });
+                });
+                return;
             }
-            
-            renderUserLists();
-        }
 
-        function renderUserLists() {
-            const onlineList = document.getElementById('onlineList');
-            const locationCollege = document.getElementById('locationCollege');
-            const locationCoffee = document.getElementById('locationCoffee');
-            const locationPc = document.getElementById('locationPc');
-            const offlineList = document.getElementById('offlineList');
-            const onlineCount = document.getElementById('onlineCount');
+            const ranking = getRanking();
+            const userRank = ranking.findIndex(s => s.email === user.email) + 1;
+            const userData = userStudentData || students.find(s => s.email === user.email) || {
+                ...students[0],
+                name: user.email.split('@')[0],
+                email: user.email,
+                total_study_time: 0,
+                total_sessions: 0,
+                max_session_duration: 0,
+                last_start_time: new Date().getHours(),
+                messages_count: 0,
+                current_streak: 1,
+                returned_after_break: false
+            };
             
-            const onlineArr = Array.from(onlineUsers.values());
-            const offlineArr = allUsers.filter(u => !onlineUsers.has(u.id));
+            const unlockedAchievements = getUnlockedAchievements(userData);
+            const title = getTitle(calculatePoints(userData));
             
-            onlineCount.textContent = onlineArr.length;
-            
-            onlineList.innerHTML = onlineArr.map(u => `
-                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
-                    <span class="status-dot"></span>
-                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
-                    <span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''} ${u.onBreak ? '☕' : ''}</span>
+            content.innerHTML = `
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="avatar">👨‍🎓</div>
+                        <div class="profile-info">
+                            <h2>${userData.name}</h2>
+                            <p>${user.email} • ${title.name} <span style="color:${title.color};">🏆</span></p>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value">${Math.floor(userData.total_study_time / 3600)}ч</div>
+                            <div class="stat-label">Всего учебы</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${userData.messages_count}</div>
+                            <div class="stat-label">Сообщений</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${userData.current_streak} дн.</div>
+                            <div class="stat-label">Стрик</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">#${userRank}</div>
+                            <div class="stat-label">Место в рейтинге</div>
+                        </div>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">Выйти</button>
                 </div>
-            `).join('');
-            
-            const collegeUsers = onlineArr.filter(u => u.location === 'В колледже');
-            const coffeeUsers = onlineArr.filter(u => u.location === 'В кофе');
-            const pcUsers = onlineArr.filter(u => u.location === 'В ПК клубе');
-            
-            locationCollege.innerHTML = collegeUsers.map(u => `
-                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
-                    <span class="status-dot"></span>
-                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
-                    <span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span>
+                
+                <div class="rating-card">
+                    <h3>🏆 Топ студентов</h3>
+                    ${ranking.slice(0, 10).map((s, idx) => {
+                        const isCurrentUser = s.email === user.email;
+                        const studentTitle = getTitle(s.points);
+                        return `
+                            <div class="student-row ${isCurrentUser ? 'current-user' : ''}">
+                                <div class="rank">${idx + 1}</div>
+                                <div class="name">
+                                    ${s.name}
+                                    <span style="color:${studentTitle.color}; font-size:12px;"> [${studentTitle.name}]</span>
+                                </div>
+                                <div class="points">🏆 ${s.points} pts</div>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
-            `).join('');
-            
-            locationCoffee.innerHTML = coffeeUsers.map(u => `
-                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
-                    <span class="status-dot"></span>
-                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
-                    <span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span>
-                </div>
-            `).join('');
-            
-            locationPc.innerHTML = pcUsers.map(u => `
-                <div class="user-card ${u.onBreak ? 'break' : 'online'}">
-                    <span class="status-dot"></span>
-                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
-                    <span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span>
-                </div>
-            `).join('');
-            
-            offlineList.innerHTML = offlineArr.map(u => `
-                <div class="user-card offline">
-                    <span class="status-dot"></span>
-                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
-                    <span>${u.full_name}</span>
-                </div>
-            `).join('');
-        }
-
-        function updateStudyTimer() {
-            if (!studyStartTime) return;
-            const now = new Date().getTime();
-            let elapsed = (now - studyStartTime) / 1000;
-            if (isOnBreak && breakStartTime) {
-                const breakElapsed = (now - breakStartTime) / 1000;
-                totalBreakSeconds += breakElapsed;
-                breakStartTime = now;
-                elapsed -= totalBreakSeconds;
-            } else if (!isOnBreak) {
-                elapsed -= totalBreakSeconds;
-            }
-            if (elapsed < 0) elapsed = 0;
-            const hours = Math.floor(elapsed / 3600);
-            const minutes = Math.floor((elapsed % 3600) / 60);
-            document.getElementById('studyTimer').innerHTML = `⏱️ ${hours} ч ${minutes} мин`;
-        }
-
-        function renderMessages() {
-            const container = document.getElementById('chatMessages');
-            if (!container) return;
-            container.innerHTML = messages.slice(-50).map(msg => `
-                <div class="message ${msg.user_id === currentUser?.id ? 'own' : ''}">
-                    <img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}">
-                    <div>
-                        <div class="message-sender">${msg.user_name}</div>
-                        <div class="message-bubble">${escapeHtml(msg.text)}</div>
+                
+                <div class="achievements-card">
+                    <h3>🎖️ Достижения (${unlockedAchievements.length}/${ACHIEVEMENTS.length})</h3>
+                    <div class="achievements-grid">
+                        ${ACHIEVEMENTS.map(ach => {
+                            const isUnlocked = unlockedAchievements.includes(ach.id);
+                            return `
+                                <div class="achievement ${isUnlocked ? 'unlocked' : 'locked'}">
+                                    <div class="achievement-icon">${ach.icon}</div>
+                                    <div class="achievement-info">
+                                        <div class="achievement-name">${ach.name}</div>
+                                        <div class="achievement-desc">${ach.desc}</div>
+                                        <span class="achievement-rarity ${getRarityClass(ach.rarity)}">${ach.rarity}</span>
+                                    </div>
+                                    ${isUnlocked ? '<div style="font-size:20px;">✅</div>' : '<div style="font-size:20px;">🔒</div>'}
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
-            `).join('');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if (!text || !currentUser) return;
+            `;
             
-            const message = {
-                id: Date.now(),
-                user_id: currentUser.id,
-                user_name: currentUser.full_name,
-                avatar_url: currentUser.avatar_url,
-                text: text,
-                time: new Date().toISOString()
-            };
-            messages.push(message);
-            saveMessages();
-            renderMessages();
-            input.value = '';
-        }
-
-        window.sendMessage = sendMessage;
-
-        function startHeartbeat() {
-            setInterval(() => {
-                if (currentUser) {
-                    currentUser.lastSeen = new Date().getTime();
-                    currentUser.location = currentLocation;
-                    currentUser.onBreak = isOnBreak;
-                    addOrUpdateUser(currentUser);
-                    updateOnlineStatus();
-                }
-            }, 15000);
-        }
-
-        async function initApp(user) {
-            currentUser = {
-                id: user.id,
-                email: user.email,
-                full_name: user.user_metadata?.full_name || user.email.split('@')[0],
-                avatar_url: user.user_metadata?.avatar_url,
-                lastSeen: new Date().getTime(),
-                location: 'В колледже',
-                onBreak: false
-            };
-            
-            document.getElementById('userName').textContent = currentUser.full_name;
-            const avatarImg = document.getElementById('userAvatar');
-            avatarImg.src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name)}&background=667eea&color=fff`;
-            
-            addOrUpdateUser(currentUser);
-            updateOnlineStatus();
-            
-            studyStartTime = new Date().getTime();
-            totalBreakSeconds = 0;
-            if (studyInterval) clearInterval(studyInterval);
-            studyInterval = setInterval(updateStudyTimer, 1000);
-            
-            document.getElementById('locationSelect').value = currentLocation;
-            document.getElementById('locationSelect').onchange = (e) => {
-                currentLocation = e.target.value;
-                if (currentUser) {
-                    currentUser.location = currentLocation;
-                    addOrUpdateUser(currentUser);
-                    updateOnlineStatus();
-                }
-            };
-            
-            const breakBtn = document.getElementById('breakBtn');
-            breakBtn.onclick = () => {
-                if (isOnBreak) {
-                    isOnBreak = false;
-                    breakStartTime = null;
-                    breakBtn.textContent = '⏸ Перерыв';
-                    breakBtn.classList.remove('active');
-                    document.getElementById('statusDot').className = 'online-dot';
-                    document.getElementById('statusText').textContent = 'Онлайн';
-                } else {
-                    isOnBreak = true;
-                    breakStartTime = new Date().getTime();
-                    breakBtn.textContent = '▶ Вернуться';
-                    breakBtn.classList.add('active');
-                    document.getElementById('statusDot').className = 'break-dot';
-                    document.getElementById('statusText').textContent = 'На перерыве';
-                }
-                if (currentUser) {
-                    currentUser.onBreak = isOnBreak;
-                    addOrUpdateUser(currentUser);
-                    updateOnlineStatus();
-                }
-                updateStudyTimer();
-            };
-            
-            renderMessages();
-            startHeartbeat();
-            setInterval(() => updateOnlineStatus(), 5000);
-        }
-
-        document.getElementById('loginBtn').onclick = () => {
-            sb.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.href }
+            document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.reload();
             });
-        };
-
-        document.getElementById('logoutBtn')?.addEventListener('click', () => {
-            sb.auth.signOut().then(() => location.reload());
-        });
-
-        async function checkSession() {
-            loadLocalData();
-            const { data } = await sb.auth.getSession();
-            if (data.session) {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                await initApp(data.session.user);
-            } else {
-                document.getElementById('loginContainer').style.display = 'flex';
-                document.getElementById('mainApp').style.display = 'none';
-            }
         }
 
-        sb.auth.onAuthStateChange((event) => {
-            if (event === 'SIGNED_IN') checkSession();
-            if (event === 'SIGNED_OUT') {
-                document.getElementById('loginContainer').style.display = 'flex';
-                document.getElementById('mainApp').style.display = 'none';
+        // Инициализация
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                // Найти или создать данные студента
+                let studentData = students.find(s => s.email === session.user.email);
+                if (!studentData) {
+                    studentData = {
+                        id: students.length + 1,
+                        name: session.user.email.split('@')[0],
+                        email: session.user.email,
+                        total_study_time: 0,
+                        total_sessions: 0,
+                        max_session_duration: 0,
+                        last_start_time: new Date().getHours(),
+                        messages_count: 0,
+                        current_streak: 1,
+                        returned_after_break: false
+                    };
+                    students.push(studentData);
+                }
+                renderApp(session.user, studentData);
+            } else {
+                renderApp(null, null);
             }
-        });
+            
+            // Слушаем изменение аутентификации
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                    window.location.reload();
+                }
+            });
+        }
         
-        checkSession();
+        init();
     </script>
 </body>
 </html>
