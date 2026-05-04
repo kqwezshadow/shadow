@@ -139,7 +139,6 @@
         .chat-input-area input { flex: 1; padding: 12px; border: 1px solid #dee2e6; border-radius: 25px; outline: none; }
         .chat-input-area button { background: #667eea; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; }
 
-        /* Рейтинг и достижения */
         .rating-achievements { flex: 0.7; min-width: 320px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .rating-achievements h3 { margin-bottom: 15px; color: #333; border-left: 4px solid #f5576c; padding-left: 12px; }
         .rating-achievements h4 { margin: 15px 0 10px 0; color: #666; font-size: 14px; }
@@ -276,55 +275,40 @@
         let onlineUsers = new Map();
         let messages = [];
         
-        // Таймер
         let totalSeconds = 0;
         let timerInterval = null;
         let isOnBreak = false;
         let currentLocation = 'В колледже';
         
-        // ДАННЫЕ ДЛЯ АЧИВОК (история)
-        let userDailyStartTime = null;
         let userMessagesCount = 0;
         let userMaxSessionDuration = 0;
         let userCurrentStreak = 1;
         let userTotalSessions = 0;
-        let userLastLoginDate = null;
-        let userReturnedAfterBreak = false;
         let userUnlockedAchievements = [];
 
-        // ========== СИСТЕМА ДОСТИЖЕНИЙ (Dota + CS + Ученик) ==========
         const ACHIEVEMENTS = [
             { id: 'first_blood', name: 'First Blood', desc: 'Первая учебная сессия', icon: '🩸', rarity: 'common', check: (u) => u.totalSessions >= 1 },
             { id: 'double_kill', name: 'Double Kill', desc: '2 часа учебы подряд', icon: '⚔️', rarity: 'common', check: (u) => u.maxSessionDuration >= 7200 },
             { id: 'triple_kill', name: 'Triple Kill', desc: '3 часа учебы подряд', icon: '🗡️', rarity: 'rare', check: (u) => u.maxSessionDuration >= 10800 },
             { id: 'ultra_kill', name: 'Ultra Kill', desc: '4 часа учебы подряд', icon: '💀', rarity: 'epic', check: (u) => u.maxSessionDuration >= 14400 },
             { id: 'rampage', name: 'Rampage', desc: '5 часов учебы подряд', icon: '🔥', rarity: 'epic', check: (u) => u.maxSessionDuration >= 18000 },
-            { id: 'godlike', name: 'Godlike', desc: '10 часов учебы за день', icon: '👑', rarity: 'legendary', check: (u) => u.dailyStudy >= 36000 && u.dailyStudy },
             { id: 'early_bird', name: 'Ранняя пташка', desc: 'Начал учиться до 8:00', icon: '🌅', rarity: 'common', check: (u) => u.lastStartHour < 8 },
             { id: 'night_owl', name: 'Ночная сова', desc: 'Учился после 23:00', icon: '🦉', rarity: 'common', check: (u) => u.lastStartHour >= 23 },
-            { id: 'night_stalker', name: 'Night Stalker', desc: 'Учился после полуночи', icon: '🌙', rarity: 'rare', check: (u) => u.lastStartHour >= 0 && u.lastStartHour < 5 },
-            { id: 'activist', name: 'Активист', desc: '20 сообщений в чате', icon: '💬', rarity: 'common', check: (u) => u.messagesCount >= 20 },
-            { id: 'social', name: 'Душа компании', desc: '50 сообщений в чате', icon: '🦋', rarity: 'rare', check: (u) => u.messagesCount >= 50 },
-            { id: 'orator', name: 'Оратор', desc: '100 сообщений в чате', icon: '🎙️', rarity: 'epic', check: (u) => u.messagesCount >= 100 },
-            { id: 'techies_main', name: 'Techies Main', desc: 'Написал 50 сообщений', icon: '💣', rarity: 'rare', check: (u) => u.messagesCount >= 50 },
+            { id: 'activist', name: 'Активист', desc: '20 сообщений', icon: '💬', rarity: 'common', check: (u) => u.messagesCount >= 20 },
+            { id: 'social', name: 'Душа компании', desc: '50 сообщений', icon: '🦋', rarity: 'rare', check: (u) => u.messagesCount >= 50 },
             { id: 'hardworker', name: 'Трудоголик', desc: '5 часов суммарно', icon: '💪', rarity: 'common', check: (u) => u.totalSeconds >= 18000 },
             { id: 'student', name: 'Студент', desc: '20 часов суммарно', icon: '📖', rarity: 'rare', check: (u) => u.totalSeconds >= 72000 },
             { id: 'academic', name: 'Академик', desc: '50 часов суммарно', icon: '🎓', rarity: 'epic', check: (u) => u.totalSeconds >= 180000 },
             { id: 'legend', name: 'Легенда', desc: '100 часов суммарно', icon: '⭐', rarity: 'legendary', check: (u) => u.totalSeconds >= 360000 },
-            { id: 'immortal', name: 'Immortal', desc: '100 часов суммарно', icon: '🏆', rarity: 'legendary', check: (u) => u.totalSeconds >= 360000 },
             { id: 'streak_week', name: 'Первая неделя', desc: '7 дней подряд', icon: '📆', rarity: 'common', check: (u) => u.currentStreak >= 7 },
             { id: 'streak_month', name: 'Месяц дисциплины', desc: '30 дней подряд', icon: '🏆', rarity: 'epic', check: (u) => u.currentStreak >= 30 },
-            { id: 'returner', name: 'Возвращение', desc: 'Вернулся после перерыва', icon: '🔄', rarity: 'common', check: (u) => u.returnedAfterBreak === true },
-            { id: 'awp_buy', name: 'Купил AWP', desc: '20 часов суммарно', icon: '🔫', rarity: 'rare', check: (u) => u.totalSeconds >= 72000 },
-            { id: 'cs_legend', name: 'Легенда CS', desc: '100 часов суммарно', icon: '⭐', rarity: 'legendary', check: (u) => u.totalSeconds >= 360000 }
+            { id: 'returner', name: 'Возвращение', desc: 'Вернулся после перерыва', icon: '🔄', rarity: 'common', check: (u) => u.returnedAfterBreak === true }
         ];
 
-        // Подсчёт очков рейтинга
         function calculatePoints(userData) {
             return Math.floor(userData.totalSeconds / 3600) * 10 + (userData.messagesCount || 0) * 2 + (userData.currentStreak || 1) * 5;
         }
 
-        // Получение звания
         function getTitle(points) {
             if (points >= 3000) return { name: 'Immortal', color: '#ff4757' };
             if (points >= 2500) return { name: 'Divine', color: '#ffa502' };
@@ -335,7 +319,6 @@
             return { name: 'Herald', color: '#747d8c' };
         }
 
-        // Получить rarity класс
         function getRarityClass(rarity) {
             switch(rarity) {
                 case 'common': return 'rarity-common';
@@ -346,7 +329,6 @@
             }
         }
 
-        // Обновление достижений для пользователя
         function updateAchievements(userStats) {
             const newUnlocked = [];
             for (const ach of ACHIEVEMENTS) {
@@ -360,7 +342,6 @@
             renderAchievements();
         }
 
-        // Показать уведомление о достижении
         function showAchievementToast(ach) {
             const toast = document.createElement('div');
             toast.style.position = 'fixed';
@@ -377,33 +358,35 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
-        // Получение статистики пользователя
-        function getUserStatsForAchievements(userId) {
-            const userData = allUsers.find(u => u.id === userId);
-            return {
-                totalSeconds: totalSeconds,
-                messagesCount: userMessagesCount,
-                maxSessionDuration: userMaxSessionDuration,
-                currentStreak: userCurrentStreak,
-                totalSessions: userTotalSessions,
-                lastStartHour: userDailyStartTime ? new Date(userDailyStartTime).getHours() : new Date().getHours(),
-                returnedAfterBreak: userReturnedAfterBreak,
-                dailyStudy: totalSeconds
-            };
-        }
-
-        // Рендер топ студентов
         function renderTopStudents() {
-            const ranking = allUsers.map(u => ({
+            // Собираем данные со всех пользователей
+            const allUsersData = allUsers.map(u => ({
                 id: u.id,
                 name: u.full_name,
                 totalSeconds: u.studySeconds || 0,
                 messagesCount: u.messagesCount || 0,
                 currentStreak: u.currentStreak || 1
-            })).map(u => ({
+            }));
+            
+            // Добавляем текущего пользователя, если его нет в allUsers
+            if (currentUser && !allUsersData.find(u => u.id === currentUser.id)) {
+                allUsersData.push({
+                    id: currentUser.id,
+                    name: currentUser.full_name,
+                    totalSeconds: totalSeconds,
+                    messagesCount: userMessagesCount,
+                    currentStreak: userCurrentStreak
+                });
+            }
+            
+            const ranking = allUsersData.map(u => ({
                 ...u,
                 points: calculatePoints(u)
-            })).sort((a, b) => b.points - a.points);
+            })).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                // Если очки равны, сортируем по времени учебы
+                return b.totalSeconds - a.totalSeconds;
+            });
             
             const top3 = ranking.slice(0, 3);
             const topList = document.getElementById('topStudentsList');
@@ -433,9 +416,8 @@
                 `).join('');
             }
             
-            // Личная статистика
             const currentRank = ranking.findIndex(s => s.id === currentUser?.id) + 1;
-            const currentPoints = currentUser ? calculatePoints({ totalSeconds, messagesCount: userMessagesCount, currentStreak: userCurrentStreak }) : 0;
+            const currentPoints = calculatePoints({ totalSeconds, messagesCount: userMessagesCount, currentStreak: userCurrentStreak });
             const title = getTitle(currentPoints);
             const personalStatsDiv = document.getElementById('personalStats');
             if (personalStatsDiv && currentUser) {
@@ -444,21 +426,27 @@
                     ⏱️ Учеба: ${Math.floor(totalSeconds / 3600)}ч ${Math.floor((totalSeconds % 3600) / 60)}мин<br>
                     💬 Сообщений: ${userMessagesCount}<br>
                     🔥 Стрик: ${userCurrentStreak} дней<br>
-                    <span style="font-size:11px; display:block; margin-top:5px;">⭐ ${title.points ? currentPoints : 0} очков рейтинга</span>`;
+                    <span style="font-size:11px; display:block; margin-top:5px;">⭐ ${currentPoints} очков рейтинга</span>`;
             }
             
-            // Делаем кликабельным таймер
             const timerSpan = document.getElementById('studyTimer');
             if (timerSpan) {
                 timerSpan.onclick = () => document.getElementById('fullRatingModal').style.display = 'flex';
             }
         }
         
-        // Рендер достижений пользователя
         function renderAchievements() {
             const container = document.getElementById('achievementsList');
             if (!container) return;
-            const userStats = getUserStatsForAchievements(currentUser?.id);
+            const userStats = {
+                totalSeconds: totalSeconds,
+                messagesCount: userMessagesCount,
+                maxSessionDuration: userMaxSessionDuration,
+                currentStreak: userCurrentStreak,
+                totalSessions: userTotalSessions,
+                lastStartHour: new Date().getHours(),
+                returnedAfterBreak: false
+            };
             updateAchievements(userStats);
             
             container.innerHTML = ACHIEVEMENTS.map(ach => {
@@ -477,7 +465,6 @@
             }).join('');
         }
 
-        // Загрузка сохранённых данных пользователя
         function loadUserData() {
             const saved = localStorage.getItem(`userData_${currentUser?.id}`);
             if (saved) {
@@ -487,7 +474,6 @@
                 userMaxSessionDuration = data.userMaxSessionDuration || 0;
                 userCurrentStreak = data.userCurrentStreak || 1;
                 userTotalSessions = data.userTotalSessions || 0;
-                userReturnedAfterBreak = data.userReturnedAfterBreak || false;
                 userUnlockedAchievements = data.userUnlockedAchievements || [];
             }
             const storedAchievements = localStorage.getItem(`achievements_${currentUser?.id}`);
@@ -501,11 +487,10 @@
             if (!currentUser) return;
             const data = {
                 totalSeconds, messagesCount: userMessagesCount, userMaxSessionDuration,
-                userCurrentStreak, userTotalSessions, userReturnedAfterBreak,
+                userCurrentStreak, userTotalSessions,
                 userUnlockedAchievements
             };
             localStorage.setItem(`userData_${currentUser.id}`, JSON.stringify(data));
-            // Обновляем данные в allUsers
             const userIndex = allUsers.findIndex(u => u.id === currentUser.id);
             if (userIndex !== -1) {
                 allUsers[userIndex].studySeconds = totalSeconds;
@@ -515,7 +500,6 @@
             }
         }
 
-        // Обновление статистики при сообщении
         function onMessageSent() {
             userMessagesCount++;
             saveUserData();
@@ -523,7 +507,6 @@
             renderAchievements();
         }
 
-        // Функции таймера
         function updateTimerDisplay() {
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -548,7 +531,6 @@
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         }
 
-        // Остальные функции (users, chat и т.д.)
         function loadLocalData() {
             const savedUsers = localStorage.getItem('all_users');
             if (savedUsers) allUsers = JSON.parse(savedUsers);
@@ -561,8 +543,11 @@
 
         function addOrUpdateUser(user) {
             const existingIndex = allUsers.findIndex(u => u.id === user.id);
-            if (existingIndex !== -1) { allUsers[existingIndex] = { ...allUsers[existingIndex], ...user }; } 
-            else { allUsers.push(user); }
+            if (existingIndex !== -1) { 
+                allUsers[existingIndex] = { ...allUsers[existingIndex], ...user }; 
+            } else { 
+                allUsers.push(user); 
+            }
             saveUsers();
             renderTopStudents();
         }
@@ -571,17 +556,19 @@
             const now = new Date().getTime();
             onlineUsers.clear();
             allUsers.forEach(user => {
-                if (user.lastSeen && (now - user.lastSeen) < 120000) { onlineUsers.set(user.id, user); }
+                if (user.lastSeen && (now - user.lastSeen) < 60000) { // 60 секунд
+                    onlineUsers.set(user.id, user);
+                }
             });
-            if (currentUser && !onlineUsers.has(currentUser.id)) {
+            if (currentUser) {
                 currentUser.lastSeen = now;
                 currentUser.location = currentLocation;
                 currentUser.onBreak = isOnBreak;
-                onlineUsers.set(currentUser.id, currentUser);
+                currentUser.studySeconds = totalSeconds;
+                currentUser.messagesCount = userMessagesCount;
+                currentUser.currentStreak = userCurrentStreak;
                 addOrUpdateUser(currentUser);
-            } else if (currentUser) {
-                const updatedUser = onlineUsers.get(currentUser.id);
-                if (updatedUser) { updatedUser.onBreak = isOnBreak; updatedUser.location = currentLocation; }
+                onlineUsers.set(currentUser.id, currentUser);
             }
             renderUserLists();
         }
@@ -593,13 +580,17 @@
             const locationPc = document.getElementById('locationPc');
             const offlineList = document.getElementById('offlineList');
             const onlineCount = document.getElementById('onlineCount');
+            
             const onlineArr = Array.from(onlineUsers.values());
             const offlineArr = allUsers.filter(u => !onlineUsers.has(u.id));
+            
             onlineCount.textContent = onlineArr.length;
             onlineList.innerHTML = onlineArr.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.id === currentUser?.id ? '(Вы)' : ''} ${u.onBreak ? '☕' : ''}</span></div>`).join('');
+            
             const collegeUsers = onlineArr.filter(u => u.location === 'В колледже');
             const coffeeUsers = onlineArr.filter(u => u.location === 'В кофе');
             const pcUsers = onlineArr.filter(u => u.location === 'В ПК клубе');
+            
             locationCollege.innerHTML = collegeUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
             locationCoffee.innerHTML = coffeeUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
             locationPc.innerHTML = pcUsers.map(u => `<div class="user-card ${u.onBreak ? 'break' : 'online'}"><span class="status-dot"></span><img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}"><span>${u.full_name} ${u.onBreak ? '(перерыв)' : ''}</span></div>`).join('');
@@ -637,7 +628,7 @@
                     addOrUpdateUser(currentUser);
                     updateOnlineStatus();
                 }
-            }, 15000);
+            }, 10000);
         }
 
         async function initApp(user) {
@@ -661,8 +652,6 @@
             updateTimerDisplay();
             startTimer();
             
-            // Запоминаем время первого входа для "Ранней пташки"
-            userDailyStartTime = new Date();
             userTotalSessions++;
             saveUserData();
             
