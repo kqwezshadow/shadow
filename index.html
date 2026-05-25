@@ -1,35 +1,1090 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Вход через Google</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Монитор группы - Turan Education</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .login-box h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
+        .login-box .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+
+        .google-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .google-btn:hover { background: #357ae8; transform: translateY(-2px); }
+
+        .main-app { display: none; min-height: 100vh; }
+
+        .header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        .user-details { display: flex; flex-direction: column; }
+        .user-name { font-weight: 600; color: #333; }
+        .user-status { font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .online-dot { width: 8px; height: 8px; background: #4cd964; border-radius: 50%; animation: pulse 1.5s infinite; }
+        .break-dot { width: 8px; height: 8px; background: #ffc107; border-radius: 50%; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0.5; transform: scale(1.2); } }
+
+        .study-timer {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .location-select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .break-btn {
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            background: #ffc107;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .break-btn.active { background: #4cd964; color: white; }
+        .logout-header-btn { border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; background: #ff4757; color: white; }
+        .create-poll-btn { background: #667eea; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; margin-left: 10px; }
+
+        .main-content { display: flex; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap; }
+        .group-monitor { flex: 1; min-width: 300px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .group-monitor h3 { margin-bottom: 20px; color: #333; border-left: 4px solid #667eea; padding-left: 12px; }
+        .location-group { margin-bottom: 25px; }
+        .location-title { font-weight: 600; margin-bottom: 10px; padding: 8px; border-radius: 10px; }
+        .location-title.college { background: #e3f2fd; color: #1976d2; }
+        .location-title.coffee { background: #fff3e0; color: #f57c00; }
+        .location-title.pc { background: #e8f5e9; color: #388e3c; }
+        .user-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .user-card { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #f8f9fa; border-radius: 30px; font-size: 13px; cursor: pointer; }
+        .user-card:hover { background: #e9ecef; }
+        .user-card img { width: 28px; height: 28px; border-radius: 50%; }
+        .user-card .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .user-card.online .status-dot { background: #4cd964; }
+        .user-card.break .status-dot { background: #ffc107; }
+        .user-card.offline .status-dot { background: #adb5bd; }
+
+        .chat-panel { flex: 1; min-width: 350px; background: white; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .chat-header { padding: 15px 20px; border-bottom: 1px solid #e9ecef; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex: 1; height: 450px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .message { display: flex; gap: 10px; max-width: 80%; }
+        .message.own { align-self: flex-end; flex-direction: row-reverse; }
+        .message-avatar { width: 32px; height: 32px; border-radius: 50%; }
+        .message-bubble { background: #f1f3f5; padding: 10px 15px; border-radius: 18px; font-size: 14px; word-break: break-word; }
+        .message.own .message-bubble { background: #667eea; color: white; }
+        .message-sender { font-size: 11px; color: #868e96; margin-bottom: 4px; }
+        .mention { background: #667eea20; color: #667eea; padding: 2px 5px; border-radius: 12px; font-weight: 500; }
+        .chat-input-area { padding: 15px; border-top: 1px solid #e9ecef; display: flex; gap: 10px; flex-wrap: wrap; }
+        .chat-input-area input { flex: 1; padding: 12px; border: 1px solid #dee2e6; border-radius: 25px; outline: none; }
+        .chat-input-area button { background: #667eea; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; }
+
+        .rating-panel { flex: 0.7; min-width: 320px; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .rating-panel h3 { margin-bottom: 15px; color: #333; border-left: 4px solid #f5576c; padding-left: 12px; }
+        .rating-panel h4 { margin: 15px 0 10px 0; color: #666; font-size: 14px; }
+        .top-student { background: linear-gradient(135deg, #ffd700, #ff8c00); padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+        .top-student .rank { font-size: 24px; font-weight: bold; }
+        .top-student .name { font-size: 16px; font-weight: bold; flex: 1; }
+        .top-student .points { font-size: 14px; }
+        .student-row { background: #f8f9fa; padding: 10px; border-radius: 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .student-row .rank { width: 35px; font-weight: bold; color: #ffd700; }
+        .student-row .name { flex: 1; color: #333; font-size: 14px; }
+        .student-row .points { color: #f5576c; font-weight: bold; }
+        .current-user-row { background: rgba(245,87,108,0.15); border-left: 3px solid #f5576c; }
+        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 10px; max-height: 350px; overflow-y: auto; }
+        .achievement { background: #f8f9fa; border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .achievement.locked { opacity: 0.5; filter: grayscale(0.3); }
+        .achievement.unlocked { background: linear-gradient(135deg, rgba(0,255,0,0.1), rgba(0,200,0,0.05)); border-left: 3px solid #00ff00; }
+        .achievement-icon { font-size: 28px; }
+        .achievement-info { flex: 1; }
+        .achievement-name { font-weight: bold; font-size: 13px; }
+        .achievement-desc { font-size: 10px; color: #888; }
+        .personal-stats { background: #f0f2f5; border-radius: 12px; padding: 12px; margin-bottom: 15px; text-align: center; }
+        
+        .modal, .poll-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content, .poll-modal-content { background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .close-modal { background: #ff4757; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; margin-top: 15px; }
+        
+        .poll-card { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #667eea; }
+        .poll-question { font-weight: bold; margin-bottom: 12px; font-size: 15px; }
+        .poll-options { display: flex; flex-direction: column; gap: 10px; }
+        .poll-option { background: white; border-radius: 10px; padding: 10px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .poll-option:hover { background: #e9ecef; }
+        .poll-option-bar { position: absolute; left: 0; top: 0; height: 100%; background: #667eea20; transition: width 0.3s; z-index: 0; }
+        .poll-option-text, .poll-option-stats { position: relative; z-index: 1; font-size: 13px; }
+        .poll-option-stats { font-size: 11px; color: #666; margin-top: 5px; }
+        .poll-footer { font-size: 11px; color: #888; margin-top: 10px; padding-top: 8px; border-top: 1px solid #dee2e6; }
+        .create-poll-area { margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; }
+        .create-poll-area input, .create-poll-area textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dee2e6; border-radius: 10px; }
+        .create-poll-area button { background: #667eea; color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer; width: 100%; }
+        .option-input { display: flex; gap: 10px; margin-bottom: 8px; }
+        .option-input input { flex: 1; margin-bottom: 0; }
+        .add-option-btn { background: #28a745; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 8px; }
+
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; }
+            .message { max-width: 90%; }
+        }
+        
+        .loading { text-align: center; padding: 20px; color: #888; }
+    </style>
 </head>
 <body>
-    <h1>Вход через Google</h1>
-    <button id="loginBtn">Войти через Google</button>
-    <div id="userInfo"></div>
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h1>🔐 Вход через Google</h1>
+            <div class="subtitle">Войдите в свой аккаунт, чтобы продолжить</div>
+            <button class="google-btn" id="loginBtn">G Войти через Google</button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="main-app">
+        <div class="header">
+            <div class="user-info">
+                <img id="userAvatar" class="avatar">
+                <div class="user-details">
+                    <span id="userName" class="user-name"></span>
+                    <div class="user-status" id="userStatusBlock">
+                        <span class="online-dot" id="statusDot"></span>
+                        <span id="statusText">Онлайн</span>
+                    </div>
+                </div>
+                <span id="studyTimer" class="study-timer">⏱️ 0 ч 0 мин</span>
+            </div>
+            <div>
+                <select id="locationSelect" class="location-select">
+                    <option value="В колледже">🏫 В колледже</option>
+                    <option value="В кофе">☕ В кофе</option>
+                    <option value="В ПК клубе">🖥️ В ПК клубе</option>
+                </select>
+                <button id="breakBtn" class="break-btn">⏸ Перерыв</button>
+                <button id="createPollHeaderBtn" class="create-poll-btn">📊 Создать опрос</button>
+                <button id="logoutBtn" class="logout-header-btn">🚪 Выход</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="group-monitor">
+                <h3>📊 Монитор группы</h3>
+                <div id="onlineUsers">
+                    <h4>🟢 Онлайн — <span id="onlineCount">0</span></h4>
+                    <div id="onlineList" class="user-list"></div>
+                </div>
+                <div class="location-group">
+                    <div class="location-title college">🏫 В колледже</div>
+                    <div id="locationCollege" class="user-list"></div>
+                </div>
+                <div class="location-group">
+                    <div class="location-title coffee">☕ В кофе</div>
+                    <div id="locationCoffee" class="user-list"></div>
+                </div>
+                <div class="location-group">
+                    <div class="location-title pc">🖥️ В ПК клубе</div>
+                    <div id="locationPc" class="user-list"></div>
+                </div>
+                <div id="offlineUsers">
+                    <h4>⚫ Офлайн (всего в системе)</h4>
+                    <div id="offlineList" class="user-list"></div>
+                </div>
+                
+                <div id="pollsSection" style="margin-top: 25px;">
+                    <h3>📊 Активные опросы</h3>
+                    <div id="activePollsList" class="polls-list"></div>
+                </div>
+            </div>
+
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <span>💬 Общий чат</span>
+                    <span style="font-size: 12px; color: #888;">Упомяните: @имя</span>
+                </div>
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="messageInput" placeholder="Сообщение... Используйте @ для упоминания" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()">📤 Отправить</button>
+                </div>
+            </div>
+
+            <div class="rating-panel">
+                <h3>🏆 Топ студентов</h3>
+                <div id="topStudentsList"></div>
+                <div class="personal-stats" id="personalStats">📊 Загрузка...</div>
+                <h3>🎖️ Мои достижения</h3>
+                <div id="achievementsList" class="achievements-grid"></div>
+                <button id="fullRankBtn" style="margin-top:15px; padding:10px; width:100%; background:#667eea; color:white; border:none; border-radius:10px; cursor:pointer;">📋 Полный рейтинг</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="fullRatingModal" class="modal">
+        <div class="modal-content">
+            <h3>🏆 Полный рейтинг студентов</h3>
+            <div id="fullRatingList"></div>
+            <button class="close-modal" onclick="closeModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="createPollModal" class="poll-modal">
+        <div class="poll-modal-content">
+            <h3>📊 Создать опрос</h3>
+            <div class="create-poll-area">
+                <input type="text" id="pollQuestion" placeholder="Вопрос опроса" style="width: 100%;">
+                <div id="pollOptionsContainer">
+                    <div class="option-input">
+                        <input type="text" placeholder="Вариант 1" class="pollOption">
+                    </div>
+                    <div class="option-input">
+                        <input type="text" placeholder="Вариант 2" class="pollOption">
+                    </div>
+                </div>
+                <button class="add-option-btn" onclick="addPollOption()">+ Добавить вариант</button>
+                <button onclick="createPoll()" style="margin-top: 15px; background: #28a745;">✅ Создать опрос</button>
+                <button onclick="closePollModal()" style="margin-top: 10px; background: #6c757d;">Отмена</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const supabaseUrl = 'https://xwmckxrikcfalulwkhii.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY';
+        const sb = window.supabase.createClient(
+            'https://xwmckxrikcfalulwkhii.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3bWNreHJpa2NmYWx1bHdraGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MjM3MTUsImV4cCI6MjA5MTE5OTcxNX0.8c5ty2PB2bsAwUk0ZoiY0g0dk-KIws7h4UT1MESSaGY'
+        );
+
+        let currentUser = null;
+        let allUsers = [];
+        let onlineUsers = new Map();
+        let messages = [];
+        let activePolls = [];
         
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // Таймер
+        let totalSeconds = 0;
+        let timerInterval = null;
+        let isOnBreak = false;
+        let currentLocation = 'В колледже';
+        
+        // Данные для достижений
+        let userMessagesCount = 0;
+        let userMaxSessionDuration = 0;
+        let userCurrentStreak = 1;
+        let userTotalSessions = 0;
+        let userUnlockedAchievements = [];
+        let sessionStartHour = new Date().getHours();
+        let userCreatedPoll = false;
 
-        // ГЛАВНОЕ: БЕЗ redirectTo!
-        document.getElementById('loginBtn').onclick = () => {
-            supabaseClient.auth.signInWithOAuth({ 
-                provider: 'google'
+        const ACHIEVEMENTS = [
+            { id: 'first_blood', name: 'First Blood', desc: 'Первая учебная сессия', icon: '🩸', check: () => userTotalSessions >= 1 },
+            { id: 'double_kill', name: 'Double Kill', desc: '2 часа учёбы подряд', icon: '⚔️', check: () => userMaxSessionDuration >= 7200 },
+            { id: 'triple_kill', name: 'Triple Kill', desc: '3 часа учёбы подряд', icon: '🗡️', check: () => userMaxSessionDuration >= 10800 },
+            { id: 'rampage', name: 'Rampage', desc: '5 часов учёбы подряд', icon: '🔥', check: () => userMaxSessionDuration >= 18000 },
+            { id: 'early_bird', name: 'Ранняя пташка', desc: 'Начал учиться до 8:00', icon: '🌅', check: () => sessionStartHour < 8 },
+            { id: 'night_owl', name: 'Ночная сова', desc: 'Учился после 23:00', icon: '🦉', check: () => sessionStartHour >= 23 },
+            { id: 'activist', name: 'Активист', desc: '20 сообщений в чате', icon: '💬', check: () => userMessagesCount >= 20 },
+            { id: 'social', name: 'Душа компании', desc: '50 сообщений в чате', icon: '🦋', check: () => userMessagesCount >= 50 },
+            { id: 'orator', name: 'Оратор', desc: '100 сообщений в чате', icon: '🎙️', check: () => userMessagesCount >= 100 },
+            { id: 'hardworker', name: 'Трудоголик', desc: '5 часов суммарно', icon: '💪', check: () => totalSeconds >= 18000 },
+            { id: 'student', name: 'Студент', desc: '20 часов суммарно', icon: '📖', check: () => totalSeconds >= 72000 },
+            { id: 'academic', name: 'Академик', desc: '50 часов суммарно', icon: '🎓', check: () => totalSeconds >= 180000 },
+            { id: 'legend', name: 'Легенда', desc: '100 часов суммарно', icon: '⭐', check: () => totalSeconds >= 360000 },
+            { id: 'streak_week', name: 'Первая неделя', desc: '7 дней подряд', icon: '📆', check: () => userCurrentStreak >= 7 },
+            { id: 'streak_month', name: 'Месяц дисциплины', desc: '30 дней подряд', icon: '🏆', check: () => userCurrentStreak >= 30 },
+            { id: 'poll_creator', name: 'Организатор', desc: 'Создал опрос', icon: '📊', check: () => userCreatedPoll === true },
+        ];
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function escapeHtml(text) { 
+            const div = document.createElement('div'); 
+            div.textContent = text; 
+            return div.innerHTML; 
+        }
+        
+        function showNotification(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#333;color:white;padding:12px 20px;border-radius:10px;z-index:1000;animation:slideIn 0.3s ease';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function showAchievementToast(ach) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:15px;border-radius:15px;z-index:1000;animation:slideIn 0.3s ease';
+            toast.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:30px;">${ach.icon}</span><div><strong>🏆 Новое достижение!</strong><br>${ach.name} - ${ach.desc}</div></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+        
+        function calculatePoints(seconds, messages, streak) {
+            return Math.floor(seconds / 3600) * 10 + messages * 2 + streak * 5;
+        }
+        
+        function getTitle(points) {
+            if (points >= 3000) return 'Immortal';
+            if (points >= 2500) return 'Divine';
+            if (points >= 2000) return 'Ancient';
+            if (points >= 1500) return 'Legend';
+            if (points >= 1000) return 'Archon';
+            if (points >= 500) return 'Crusader';
+            return 'Herald';
+        }
+        
+        function highlightMentions(text) {
+            return text.replace(/@(\w+)/g, (match, username) => {
+                return `<span class="mention">@${username}</span>`;
             });
-        };
-
-        const checkUser = async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                document.getElementById('userInfo').innerHTML = `<p>✅ Ты вошел как: ${session.user.email}</p>`;
-                document.getElementById('loginBtn').style.display = 'none';
+        }
+        
+        // ========== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE ==========
+        
+        async function loadProfiles() {
+            const { data, error } = await sb.from('profiles').select('*');
+            if (error) {
+                console.error('Ошибка загрузки профилей:', error);
+                return;
             }
+            allUsers = data;
+            renderTopStudents();
+            updateOnlineStatus();
+        }
+        
+        async function loadMessages() {
+            const { data, error } = await sb.from('messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .limit(100);
+            if (error) {
+                console.error('Ошибка загрузки сообщений:', error);
+                return;
+            }
+            messages = data || [];
+            renderMessages();
+        }
+        
+        async function loadPolls() {
+            const { data, error } = await sb.from('polls')
+                .select('*')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false });
+            if (error) {
+                console.error('Ошибка загрузки опросов:', error);
+                return;
+            }
+            activePolls = data || [];
+            renderActivePolls();
+        }
+        
+        async function loadUserAchievements() {
+            if (!currentUser) return;
+            const { data, error } = await sb.from('user_achievements')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .single();
+            if (error && error.code !== 'PGRST116') {
+                console.error('Ошибка загрузки достижений:', error);
+                return;
+            }
+            if (data) {
+                totalSeconds = data.total_seconds || 0;
+                userMaxSessionDuration = data.max_session || 0;
+                userTotalSessions = data.total_sessions || 0;
+                userUnlockedAchievements = data.unlocked_achievements || [];
+                userCreatedPoll = data.created_poll || false;
+            }
+            updateTimerDisplay();
+        }
+        
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            const { data, error } = await sb.from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            if (error && error.code !== 'PGRST116') {
+                console.error('Ошибка загрузки профиля:', error);
+                return;
+            }
+            if (data) {
+                userMessagesCount = data.messages_count || 0;
+                userCurrentStreak = data.current_streak || 1;
+                currentLocation = data.location || 'В колледже';
+                isOnBreak = data.on_break || false;
+                document.getElementById('locationSelect').value = currentLocation;
+                const breakBtn = document.getElementById('breakBtn');
+                if (breakBtn) {
+                    breakBtn.textContent = isOnBreak ? '▶ Вернуться' : '⏸ Перерыв';
+                    breakBtn.classList.toggle('active', isOnBreak);
+                }
+                document.getElementById('statusDot').className = isOnBreak ? 'break-dot' : 'online-dot';
+                document.getElementById('statusText').textContent = isOnBreak ? 'На перерыве' : 'Онлайн';
+            }
+        }
+        
+        // ========== СОХРАНЕНИЕ ДАННЫХ В SUPABASE ==========
+        
+        async function updateProfile() {
+            if (!currentUser) return;
+            await sb.from('profiles').upsert({
+                id: currentUser.id,
+                full_name: currentUser.full_name,
+                avatar_url: currentUser.avatar_url,
+                study_seconds: totalSeconds,
+                messages_count: userMessagesCount,
+                current_streak: userCurrentStreak,
+                location: currentLocation,
+                on_break: isOnBreak,
+                last_seen: Date.now(),
+                updated_at: new Date()
+            });
+        }
+        
+        async function updateUserAchievements() {
+            if (!currentUser) return;
+            await sb.from('user_achievements').upsert({
+                user_id: currentUser.id,
+                total_seconds: totalSeconds,
+                max_session: userMaxSessionDuration,
+                total_sessions: userTotalSessions,
+                unlocked_achievements: userUnlockedAchievements,
+                created_poll: userCreatedPoll
+            });
+        }
+        
+        async function saveUserData() {
+            await updateProfile();
+            await updateUserAchievements();
+            renderTopStudents();
+            checkAndUnlockAchievements();
+        }
+        
+        // ========== ДОСТИЖЕНИЯ ==========
+        
+        async function checkAndUnlockAchievements() {
+            let newUnlocked = [];
+            for (const ach of ACHIEVEMENTS) {
+                if (ach.check() && !userUnlockedAchievements.includes(ach.id)) {
+                    userUnlockedAchievements.push(ach.id);
+                    newUnlocked.push(ach);
+                }
+            }
+            if (newUnlocked.length > 0) {
+                await updateUserAchievements();
+                for (const ach of newUnlocked) {
+                    showAchievementToast(ach);
+                }
+            }
+            renderAchievements();
+        }
+        
+        function renderAchievements() {
+            const container = document.getElementById('achievementsList');
+            if (!container) return;
+            container.innerHTML = ACHIEVEGMENTS.map(ach => {
+                const isUnlocked = userUnlockedAchievements.includes(ach.id);
+                return `
+                    <div class="achievement ${isUnlocked ? 'unlocked' : 'locked'}">
+                        <div class="achievement-icon">${ach.icon}</div>
+                        <div class="achievement-info">
+                            <div class="achievement-name">${ach.name}</div>
+                            <div class="achievement-desc">${ach.desc}</div>
+                        </div>
+                        <div style="font-size:18px;">${isUnlocked ? '✅' : '🔒'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ========== ЧАТ С УПОМИНАНИЯМИ ==========
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+            
+            // Находим упомянутых пользователей
+            const mentions = [];
+            const regex = /@(\w+)/g;
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                const username = match[1];
+                const mentionedUser = allUsers.find(u => u.full_name && u.full_name.includes(username));
+                if (mentionedUser && mentionedUser.id !== currentUser.id) {
+                    mentions.push(mentionedUser.id);
+                    // Уведомление упомянутому пользователю (через отдельный канал позже)
+                }
+            }
+            
+            const message = {
+                id: Date.now(),
+                user_id: currentUser.id,
+                user_name: currentUser.full_name,
+                avatar_url: currentUser.avatar_url,
+                text: text,
+                mentions: mentions,
+                created_at: new Date()
+            };
+            
+            const { error } = await sb.from('messages').insert([message]);
+            if (error) {
+                console.error('Ошибка отправки:', error);
+                showNotification('❌ Ошибка отправки сообщения');
+                return;
+            }
+            
+            // Уведомляем упомянутых (в реальном приложении через push)
+            if (mentions.length > 0) {
+                showNotification(`🔔 Вы упомянули ${mentions.length} человек(а)`);
+            }
+            
+            input.value = '';
+            userMessagesCount++;
+            await saveUserData();
+        }
+        
+        function renderMessages() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            container.innerHTML = messages.slice(-50).map(msg => {
+                const highlightedText = highlightMentions(escapeHtml(msg.text));
+                const isOwn = msg.user_id === currentUser?.id;
+                return `<div class="message ${isOwn ? 'own' : ''}">
+                            <img class="message-avatar" src="${msg.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user_name)}">
+                            <div>
+                                <div class="message-sender">${escapeHtml(msg.user_name)}</div>
+                                <div class="message-bubble">${highlightedText}</div>
+                            </div>
+                        </div>`;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // ========== ОПРОСЫ ==========
+        
+        async function createPoll() {
+            const question = document.getElementById('pollQuestion').value.trim();
+            const optionInputs = document.querySelectorAll('#pollOptionsContainer .pollOption');
+            const options = Array.from(optionInputs).map(inp => inp.value.trim()).filter(v => v);
+            
+            if (!question || options.length < 2) {
+                showNotification('❌ Введите вопрос и минимум 2 варианта');
+                return;
+            }
+            
+            const poll = {
+                id: Date.now(),
+                question: question,
+                options: options,
+                votes: {},
+                created_by: currentUser.id,
+                created_by_name: currentUser.full_name,
+                is_active: true,
+                created_at: new Date()
+            };
+            
+            const { error } = await sb.from('polls').insert([poll]);
+            if (error) {
+                console.error('Ошибка создания опроса:', error);
+                showNotification('❌ Ошибка создания опроса');
+                return;
+            }
+            
+            closePollModal();
+            showNotification(`📊 Опрос "${question}" создан!`);
+            
+            // Отправляем системное сообщение в чат
+            const systemMessage = {
+                id: Date.now() + 1,
+                user_id: 'system',
+                user_name: 'Система',
+                avatar_url: '',
+                text: `📊 НОВЫЙ ОПРОС: "${question}"\nВарианты: ${options.join(' / ')}\nГолосуйте в блоке опросов!`,
+                mentions: [],
+                created_at: new Date()
+            };
+            await sb.from('messages').insert([systemMessage]);
+            
+            if (!userCreatedPoll) {
+                userCreatedPoll = true;
+                await saveUserData();
+            }
+            
+            await loadPolls();
+        }
+        
+        async function votePoll(pollId, optionIndex) {
+            const poll = activePolls.find(p => p.id === pollId);
+            if (!poll || !poll.is_active) return;
+            
+            let votes = poll.votes || {};
+            
+            // Удаляем предыдущий голос пользователя
+            for (let key in votes) {
+                const index = votes[key].indexOf(currentUser.id);
+                if (index !== -1) votes[key].splice(index, 1);
+            }
+            
+            // Добавляем новый голос
+            if (!votes[optionIndex]) votes[optionIndex] = [];
+            votes[optionIndex].push(currentUser.id);
+            
+            const { error } = await sb.from('polls')
+                .update({ votes: votes })
+                .eq('id', pollId);
+            
+            if (error) {
+                console.error('Ошибка голосования:', error);
+                showNotification('❌ Ошибка голосования');
+                return;
+            }
+            
+            showNotification(`✅ Вы проголосовали за "${poll.options[optionIndex]}"`);
+            await loadPolls();
+        }
+        
+        function renderActivePolls() {
+            const container = document.getElementById('activePollsList');
+            if (!container) return;
+            
+            if (activePolls.length === 0) {
+                container.innerHTML = '<div class="loading">Нет активных опросов</div>';
+                return;
+            }
+            
+            container.innerHTML = activePolls.map(poll => {
+                const votes = poll.votes || {};
+                const totalVotes = Object.values(votes).reduce((sum, arr) => sum + arr.length, 0);
+                const hasVoted = Object.values(votes).some(arr => arr.includes(currentUser?.id));
+                
+                return `
+                    <div class="poll-card">
+                        <div class="poll-question">❓ ${escapeHtml(poll.question)}</div>
+                        <div class="poll-options">
+                            ${poll.options.map((opt, idx) => {
+                                const voteCount = votes[idx]?.length || 0;
+                                const percentage = totalVotes ? (voteCount / totalVotes * 100).toFixed(1) : 0;
+                                const userVotedHere = votes[idx]?.includes(currentUser?.id);
+                                return `
+                                    <div class="poll-option" onclick="votePoll(${poll.id}, ${idx})">
+                                        <div class="poll-option-bar" style="width: ${percentage}%"></div>
+                                        <div class="poll-option-text">${escapeHtml(opt)} ${userVotedHere ? '✓' : ''}</div>
+                                        <div class="poll-option-stats">${voteCount} голосов (${percentage}%)</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="poll-footer">
+                            Всего: ${totalVotes} | Создал: ${escapeHtml(poll.created_by_name)} | ${hasVoted ? 'Вы уже голосовали' : 'Нажмите на вариант, чтобы проголосовать'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ========== ОНЛАЙН СТАТУС И ПОЛЬЗОВАТЕЛИ ==========
+        
+        function updateOnlineStatus() {
+            const now = Date.now();
+            onlineUsers.clear();
+            allUsers.forEach(user => {
+                if (user.last_seen && (now - user.last_seen) < 120000) {
+                    onlineUsers.set(user.id, user);
+                }
+            });
+            
+            if (currentUser && !onlineUsers.has(currentUser.id)) {
+                onlineUsers.set(currentUser.id, {
+                    ...currentUser,
+                    last_seen: now,
+                    location: currentLocation,
+                    on_break: isOnBreak
+                });
+            }
+            
+            renderUserLists();
+        }
+        
+        function renderUserLists() {
+            const onlineList = document.getElementById('onlineList');
+            const locationCollege = document.getElementById('locationCollege');
+            const locationCoffee = document.getElementById('locationCoffee');
+            const locationPc = document.getElementById('locationPc');
+            const offlineList = document.getElementById('offlineList');
+            const onlineCount = document.getElementById('onlineCount');
+            
+            const onlineArr = Array.from(onlineUsers.values());
+            const offlineArr = allUsers.filter(u => !onlineUsers.has(u.id) && u.id !== currentUser?.id);
+            
+            onlineCount.textContent = onlineArr.length;
+            
+            onlineList.innerHTML = onlineArr.map(u => `
+                <div class="user-card ${u.on_break ? 'break' : 'online'}" onclick="mentionUser('${u.full_name}')">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${escapeHtml(u.full_name)} ${u.id === currentUser?.id ? '(Вы)' : ''} ${u.on_break ? '☕' : ''}</span>
+                </div>
+            `).join('');
+            
+            const college = onlineArr.filter(u => u.location === 'В колледже');
+            const coffee = onlineArr.filter(u => u.location === 'В кофе');
+            const pc = onlineArr.filter(u => u.location === 'В ПК клубе');
+            
+            locationCollege.innerHTML = college.map(u => `
+                <div class="user-card ${u.on_break ? 'break' : 'online'}" onclick="mentionUser('${u.full_name}')">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${escapeHtml(u.full_name)} ${u.on_break ? '(перерыв)' : ''}</span>
+                </div>
+            `).join('');
+            
+            locationCoffee.innerHTML = coffee.map(u => `
+                <div class="user-card ${u.on_break ? 'break' : 'online'}" onclick="mentionUser('${u.full_name}')">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${escapeHtml(u.full_name)} ${u.on_break ? '(перерыв)' : ''}</span>
+                </div>
+            `).join('');
+            
+            locationPc.innerHTML = pc.map(u => `
+                <div class="user-card ${u.on_break ? 'break' : 'online'}" onclick="mentionUser('${u.full_name}')">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${escapeHtml(u.full_name)} ${u.on_break ? '(перерыв)' : ''}</span>
+                </div>
+            `).join('');
+            
+            offlineList.innerHTML = offlineArr.map(u => `
+                <div class="user-card offline">
+                    <span class="status-dot"></span>
+                    <img src="${u.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(u.full_name)}">
+                    <span>${escapeHtml(u.full_name)}</span>
+                </div>
+            `).join('');
+        }
+        
+        function mentionUser(name) {
+            const input = document.getElementById('messageInput');
+            const firstName = name.split(' ')[0];
+            input.value = input.value + `@${firstName} `;
+            input.focus();
+        }
+        
+        // ========== РЕЙТИНГ И ТОП ==========
+        
+        function renderTopStudents() {
+            const ranking = allUsers.map(u => ({
+                id: u.id,
+                name: u.full_name,
+                points: calculatePoints(u.study_seconds || 0, u.messages_count || 0, u.current_streak || 1),
+                seconds: u.study_seconds || 0
+            })).sort((a, b) => b.points - a.points);
+            
+            const top3 = ranking.slice(0, 3);
+            const topList = document.getElementById('topStudentsList');
+            if (topList) {
+                topList.innerHTML = top3.map((s, idx) => `
+                    <div class="top-student">
+                        <div class="rank">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</div>
+                        <div class="name">${escapeHtml(s.name)}</div>
+                        <div class="points">🏆 ${s.points} pts</div>
+                    </div>
+                `).join('');
+                if (top3.length < 3) {
+                    for (let i = top3.length; i < 3; i++) {
+                        topList.innerHTML += `<div class="top-student" style="opacity:0.5;"><div class="rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</div><div class="name">---</div><div class="points">0 pts</div></div>`;
+                    }
+                }
+            }
+            
+            const fullList = document.getElementById('fullRatingList');
+            if (fullList) {
+                fullList.innerHTML = ranking.map((s, idx) => `
+                    <div class="student-row ${s.id === currentUser?.id ? 'current-user-row' : ''}">
+                        <div class="rank">#${idx + 1}</div>
+                        <div class="name">${escapeHtml(s.name)} ${s.id === currentUser?.id ? '(Вы)' : ''}</div>
+                        <div class="points">🏆 ${s.points} pts</div>
+                    </div>
+                `).join('');
+            }
+            
+            const currentRank = ranking.findIndex(s => s.id === currentUser?.id) + 1;
+            const currentPoints = calculatePoints(totalSeconds, userMessagesCount, userCurrentStreak);
+            const title = getTitle(currentPoints);
+            const personalStatsDiv = document.getElementById('personalStats');
+            if (personalStatsDiv && currentUser) {
+                personalStatsDiv.innerHTML = `
+                    📊 <strong>Ваша статистика</strong><br>
+                    🏆 Место: #${currentRank} | ${title}<br>
+                    ⏱️ Учеба: ${Math.floor(totalSeconds / 3600)}ч ${Math.floor((totalSeconds % 3600) / 60)}мин<br>
+                    💬 Сообщений: ${userMessagesCount}<br>
+                    🔥 Стрик: ${userCurrentStreak} дней<br>
+                    ⭐ Очки: ${currentPoints}
+                `;
+            }
+        }
+        
+        // ========== ТАЙМЕР ==========
+        
+        function updateTimerDisplay() {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const timerSpan = document.getElementById('studyTimer');
+            if (timerSpan) timerSpan.innerHTML = `⏱️ ${hours} ч ${minutes} мин`;
+        }
+        
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(async () => {
+                if (!isOnBreak) {
+                    totalSeconds++;
+                    if (!isOnBreak && userMaxSessionDuration < (totalSeconds % 86400)) {
+                        userMaxSessionDuration = totalSeconds % 86400;
+                    }
+                    updateTimerDisplay();
+                    await saveUserData();
+                }
+            }, 1000);
+        }
+        
+        // ========== ИНИЦИАЛИЗАЦИЯ И ОБНОВЛЕНИЕ В РЕАЛЬНОМ ВРЕМЕНИ ==========
+        
+        async function initRealtimeSubscriptions() {
+            // Подписка на новые сообщения
+            sb.channel('messages_channel')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
+                    messages.push(payload.new);
+                    renderMessages();
+                    // Проверяем упоминания для уведомлений
+                    if (payload.new.mentions && payload.new.mentions.includes(currentUser?.id)) {
+                        showNotification(`🔔 ${payload.new.user_name} упомянул вас в чате`);
+                    }
+                })
+                .subscribe();
+            
+            // Подписка на изменения опросов
+            sb.channel('polls_channel')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'polls' }, async () => {
+                    await loadPolls();
+                })
+                .subscribe();
+            
+            // Подписка на изменения профилей (онлайн статус)
+            sb.channel('profiles_channel')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, async () => {
+                    await loadProfiles();
+                })
+                .subscribe();
+        }
+        
+        async function startHeartbeat() {
+            setInterval(async () => {
+                if (currentUser) {
+                    await updateProfile();
+                    await loadProfiles(); // Обновляем список пользователей
+                    updateOnlineStatus();
+                }
+            }, 15000);
+        }
+        
+        async function initApp(user) {
+            currentUser = {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email.split('@')[0],
+                avatar_url: user.user_metadata?.avatar_url,
+                last_seen: Date.now()
+            };
+            
+            document.getElementById('userName').textContent = currentUser.full_name;
+            const avatarImg = document.getElementById('userAvatar');
+            avatarImg.src = currentUser.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.full_name)}&background=667eea&color=fff`;
+            
+            // Загружаем все данные
+            await loadProfiles();
+            await loadMessages();
+            await loadPolls();
+            await loadUserProfile();
+            await loadUserAchievements();
+            
+            // Обновляем профиль пользователя в БД
+            await updateProfile();
+            
+            updateOnlineStatus();
+            updateTimerDisplay();
+            startTimer();
+            
+            userTotalSessions++;
+            sessionStartHour = new Date().getHours();
+            await saveUserData();
+            
+            // Настройка обработчиков UI
+            document.getElementById('locationSelect').onchange = async (e) => {
+                currentLocation = e.target.value;
+                await updateProfile();
+                updateOnlineStatus();
+            };
+            
+            const breakBtn = document.getElementById('breakBtn');
+            breakBtn.onclick = async () => {
+                isOnBreak = !isOnBreak;
+                breakBtn.textContent = isOnBreak ? '▶ Вернуться' : '⏸ Перерыв';
+                breakBtn.classList.toggle('active', isOnBreak);
+                document.getElementById('statusDot').className = isOnBreak ? 'break-dot' : 'online-dot';
+                document.getElementById('statusText').textContent = isOnBreak ? 'На перерыве' : 'Онлайн';
+                await updateProfile();
+                updateOnlineStatus();
+            };
+            
+            document.getElementById('fullRankBtn').onclick = () => {
+                renderTopStudents();
+                document.getElementById('fullRatingModal').style.display = 'flex';
+            };
+            document.getElementById('studyTimer').onclick = () => {
+                renderTopStudents();
+                document.getElementById('fullRatingModal').style.display = 'flex';
+            };
+            document.getElementById('createPollHeaderBtn').onclick = openPollModal;
+            
+            // Инициализируем реальное время
+            await initRealtimeSubscriptions();
+            startHeartbeat();
+            
+            // Периодическое обновление
+            setInterval(async () => {
+                await loadProfiles();
+                updateOnlineStatus();
+                renderTopStudents();
+            }, 5000);
+        }
+        
+        // ========== МОДАЛЬНЫЕ ОКНА ==========
+        
+        function closeModal() {
+            document.getElementById('fullRatingModal').style.display = 'none';
+        }
+        
+        function openPollModal() {
+            document.getElementById('createPollModal').style.display = 'flex';
+        }
+        
+        function closePollModal() {
+            document.getElementById('createPollModal').style.display = 'none';
+            document.getElementById('pollQuestion').value = '';
+            document.getElementById('pollOptionsContainer').innerHTML = `
+                <div class="option-input"><input type="text" placeholder="Вариант 1" class="pollOption"></div>
+                <div class="option-input"><input type="text" placeholder="Вариант 2" class="pollOption"></div>
+            `;
+        }
+        
+        function addPollOption() {
+            const container = document.getElementById('pollOptionsContainer');
+            const optionCount = container.children.length;
+            const newDiv = document.createElement('div');
+            newDiv.className = 'option-input';
+            newDiv.innerHTML = `<input type="text" placeholder="Вариант ${optionCount + 1}" class="pollOption">`;
+            container.appendChild(newDiv);
+        }
+        
+        // ========== АВТОРИЗАЦИЯ ==========
+        
+        document.getElementById('loginBtn').onclick = () => {
+            sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
         };
-        checkUser();
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+            stopTimer();
+            await sb.auth.signOut();
+            location.reload();
+        });
+        
+        async function checkSession() {
+            const { data } = await sb.auth.getSession();
+            if (data.session) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                await initApp(data.session.user);
+            } else {
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        }
+        
+        sb.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN') checkSession();
+            if (event === 'SIGNED_OUT') { 
+                document.getElementById('loginContainer').style.display = 'flex'; 
+                document.getElementById('mainApp').style.display = 'none'; 
+            }
+        });
+        
+        // Глобальные функции для onclick
+        window.votePoll = votePoll;
+        window.createPoll = createPoll;
+        window.addPollOption = addPollOption;
+        window.closeModal = closeModal;
+        window.closePollModal = closePollModal;
+        window.mentionUser = mentionUser;
+        window.sendMessage = sendMessage;
+        
+        checkSession();
     </script>
 </body>
 </html>
